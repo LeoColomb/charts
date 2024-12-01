@@ -42,7 +42,7 @@ jobs:
         if: contains(matrix.action, 'install')
 
       - name: Run chart-testing (${{ matrix.action }})
-        run: ct ${{ matrix.action }} --config config.yaml --debug '$WA_HELM_EXTRA_SET_ARGS'
+        run: ct ${{ matrix.action }} --config config.yaml --debug "$WA_HELM_EXTRA_SET_ARGS"
         env:
           CT_HELM_EXTRA_SET_ARGS: --set=image.repository=${{ secrets.NSO_IMAGE }} --set=ciPullSecrets=${{ secrets.GHCR_TOKEN }}
           WA_HELM_EXTRA_SET_ARGS: ${{ contains(matrix.action, 'install') && '--helm-extra-set-args="$CT_HELM_EXTRA_SET_ARGS"' || '' }}
