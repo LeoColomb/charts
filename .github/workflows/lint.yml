@@ -20,4 +20,4 @@ jobs:
     name: Super Linter
     uses: LeoColomb/.github/.github/workflows/lint.yml@main
     with:
-      exclude: charts/\w+/templates/.*\.yaml
+      exclude: charts/[^/]+/[^/]+/.*\.yaml
