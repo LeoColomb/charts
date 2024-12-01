@@ -14,11 +14,13 @@ spec:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
       app.kubernetes.io/component: cisco-nso
   {{- if .Values.updateStrategy }}
-  strategy: {{- toYaml .Values.updateStrategy | nindent 4 }}
+  updateStrategy: {{- include "common.tplvalues.render" (dict "value" .Values.updateStrategy "context" $ ) | nindent 4 }}
   {{- end }}
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if .Values.haRaft.enabled }}
+  serviceName: {{ printf "%s-headless" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+  {{- end }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
   template:
     metadata:
       labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
@@ -34,24 +36,35 @@ spec:
       {{- end }}
     spec:
       {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
       serviceAccountName: {{ .Values.serviceAccountName }}
       {{- if .Values.hostAliases }}
-      # yamllint disable rule:indentation
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
-      # yamllint enable rule:indentation
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName }}
       {{- end }}
       {{- if .Values.podSecurityContext.enabled }}
       securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.shareProcessNamespace }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace }}
       {{- end }}
       {{- if .Values.affinity }}
       affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
       {{- else }}
       affinity:
-        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "context" $) | nindent 10 }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "component" "cisco-nso" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "component" "cisco-nso" "customLabels" $podLabels "context" $) | nindent 10 }}
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
       {{- end }}
       {{- if .Values.nodeSelector }}
@@ -59,6 +72,9 @@ spec:
       {{- end }}
       {{- if .Values.tolerations }}
       tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
         {{- if and .Values.podSecurityContext.enabled .Values.volumePermissions.enabled .Values.persistence.enabled }}
@@ -69,19 +85,26 @@ spec:
             - /bin/bash
             - -ec
             - |
-              mkdir -p "/nso"
+              mkdir -p \
+                "/nso/run/cdb" \
+                "/nso/run/rollbacks" \
+                "/nso/run/scripts" \
+                "/nso/run/streams" \
+                "/nso/run/state" \
+                "/nso/run/backups" \
+                "/nso/run/packages"
               chown "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}" "/nso"
-              find "/nso" -mindepth 1 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}"
+              find "/nso/run" -mindepth 1 -maxdepth 2 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}"
           securityContext:
             runAsUser: 0
           {{- if .Values.volumePermissions.resources }}
-          resources: {{- toYaml .Values.volumePermissions.resources | nindent 12 }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
           {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
           resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: data
-              mountPath: /nso
+            - name: cdb
+              mountPath: /nso/run/cdb
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
@@ -96,42 +119,42 @@ spec:
           {{- if .Values.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
+          {{- if .Values.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.args "context" $) | nindent 12 }}
+          {{- end }}
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.nso.existingSecret "defaultNameSuffix" "admin" "context" $) }}
+                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
                   key: username
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.nso.existingSecret "defaultNameSuffix" "admin" "context" $) }}
+                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
                   key: password
-            - name: ADMIN_SSHKEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.nso.existingSecret "defaultNameSuffix" "admin" "context" $) }}
-                  key: ssh-privatekey
-            - name: HTTP_ENABLE
-              value: "{{ .Values.nso.httpEnable }}"
-            - name: HTTPS_ENABLE
-              value: "{{ .Values.nso.httpsEnable }}"
-            - name: SSH_PORT
-              value: "{{ .Values.nso.sshPort }}"
+            # - name: ADMIN_SSHKEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
+            #       key: ssh-privatekey
             - name: CLI_STYLE
-              value: "{{ .Values.nso.cliStyle }}"
-            - name: HA_ENABLE
-              value: {{ include "nso.highAvailability" . | quote }}
+              value: "{{ .Values.cliStyle }}"
             - name: PAM
-              value: "{{ .Values.nso.pam }}"
-            - name: CONTAINER_LOG_ENABLE
-              value: "{{ .Values.nso.containerLogEnable }}"
+              value: "{{ .Values.pam }}"
             - name: AUTO_WIZARD
-              value: "{{ .Values.nso.autoWizard }}"
+              value: "{{ .Values.autoWizard }}"
             - name: XPATH_TRACE
-              value: "{{ .Values.nso.xpathTrace }}"
+              value: "{{ .Values.xpathTrace }}"
             - name: DEVEL_LOG_LEVEL
-              value: "{{ .Values.nso.develLogLevel }}"
+              value: "{{ .Values.logLevel }}"
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
@@ -147,17 +170,26 @@ spec:
             {{- end }}
           {{- end }}
           ports:
-            - name: http
-              containerPort: 80
-            - name: https
-              containerPort: 443
+            - name: webui
+              containerPort: {{ .Values.containerPorts.webui }}
+              protocol: TCP
+            - name: restconf
+              containerPort: {{ .Values.containerPorts.restconf }}
+              protocol: TCP
             - name: netconf
-              containerPort: 830
-            - name: netconf-ch
-              containerPort: 4334
-            {{- if eq (include "nso.highAvailability" .) "true" }}
-            - name: ha
-              containerPort: 4570
+              containerPort: {{ .Values.containerPorts.netconf }}
+              protocol: TCP
+            - name: call-home
+              containerPort: {{ .Values.containerPorts.netconfCallHome }}
+              protocol: TCP
+            {{- if .Values.haRaft.enabled }}
+            - name: ha-raft
+              containerPort: {{ .Values.containerPorts.haRaft }}
+              protocol: TCP
+            {{- range seq 0 29 }}
+            - name: ha-raft-{{ add 4370 . }}
+              containerPort: {{ add 4370 . }}
+            {{- end }}
             {{- end }}
             {{- if .Values.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
@@ -165,17 +197,26 @@ spec:
           {{- if .Values.customLivenessProbe }}
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}
           {{- else if .Values.livenessProbe.enabled }}
-          livenessProbe:
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livenessProbe "enabled") "context" $) | nindent 12 }}
             httpGet:
               path: /login.html
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 5
+              port: webui
           {{- end }}
           {{- if .Values.customReadinessProbe }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.haRaft.readinessProbe "context" $) | nindent 12 }}
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - >-
+                    echo 'show ha-raft status role' |
+                    ncs_cli -u $ADMIN_USERNAME
+          {{/* show ha-raft status role }}
+          {{ show ha-raft status disabled-reason */}}
           {{- else if .Values.readinessProbe.enabled }}
-          readinessProbe:
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
             exec:
               command:
                 - /opt/ncs/current/bin/ncs_cmd
@@ -193,22 +234,44 @@ spec:
                 - get_phase
           {{- end }}
           {{- if .Values.resources }}
-          resources: {{ toYaml .Values.resources | nindent 12 }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.resources "context" $) | nindent 12 }}
           {{- else if ne .Values.resourcesPreset "none" }}
           resources: {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: data
-              mountPath: /nso
-            - mountPath: /log/traces
-              name: traces
-            {{- if .Values.customPreNcsStartScripts }}
-            - mountPath: /etc/ncs/pre-ncs-start.d
-              name: custom-pre-ncsstart
+            - name: cdb
+              mountPath: /nso/run/cdb
+            - name: rollbacks
+              mountPath: /nso/run/rollbacks
+            - name: scripts
+              mountPath: /nso/run/scripts
+            - name: streams
+              mountPath: /nso/run/streams
+            - name: state
+              mountPath: /nso/run/state
+            - name: backups
+              mountPath: /nso/run/backups
+            - name: packages
+              mountPath: {{ .Values.packages.mountPath | quote }}
+            - name: traces
+              mountPath: /log/traces
+            - name: configuration
+              mountPath: /etc/ncs/ncs.conf.d
+              readOnly: true
+            {{- range $name, $_ := .Values.customPreNcsStartScripts }}
+            - name: custom-pre-ncs-start
+              mountPath: {{ printf "/etc/ncs/pre-ncs-start.d/%s" $name }}
+              subPath: {{ $name | quote }}
             {{- end }}
-            {{- if .Values.customPostNcsStartScripts }}
-            - mountPath: /etc/ncs/post-ncs-start.d
-              name: custom-post-ncsstart
+            {{- range $name, $_ := .Values.customPostNcsStartScripts }}
+            - name: custom-post-ncs-start
+              mountPath: {{ printf "/etc/ncs/post-ncs-start.d/%s" $name }}
+              subPath: {{ $name | quote }}
+            {{- end }}
+            {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
+            - name: nso-ha-raft-certs
+              mountPath: /nso/run/backups
+              readOnly: true
             {{- end }}
             {{- if .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
@@ -217,30 +280,57 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
       volumes:
+        - name: rollbacks
+          emptyDir: {}
+        - name: scripts
+          emptyDir: {}
+        - name: streams
+          emptyDir: {}
+        - name: state
+          emptyDir: {}
+        - name: backups
+          emptyDir: {}
+        - name: packages
+          {{- if .Values.packages.enabled }}
+          image:
+            reference: {{ include "nso.packages.image" . }}
+            pullPolicy: {{ .Values.packages.image.pullPolicy | quote }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         - name: traces
           emptyDir:
             sizeLimit: 500Mi
-        {{- if .Values.customPreNcsStartScripts }}
-        - name: custom-pre-ncsstart
+        - name: configuration
           configMap:
-            name: {{ printf "%s-pre-ncsstart" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+            name: {{ printf "%s-configuration" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+        {{- if .Values.customPreNcsStartScripts }}
+        - name: custom-pre-ncs-start
+          configMap:
+            name: {{ printf "%s-pre-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0755
         {{- end }}
         {{- if .Values.customPostNcsStartScripts }}
-        - name: custom-post-ncsstart
+        - name: custom-post-ncs-start
           configMap:
-            name: {{ printf "%s-post-ncsstart" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+            name: {{ printf "%s-post-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0755
+        {{- end }}
+        {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
+        - name: nso-ha-raft-certs
+          secret:
+            secretName: {{ include "common.secrets.name" (dict "existingSecret" .Values.haRaft.existingSecret "defaultNameSuffix" "ha-raft-tls" "context" $) }}
+            defaultMode: 0256
         {{- end }}
         {{- if .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
   {{- if and .Values.persistence.enabled .Values.persistence.existingClaim }}
-        - name: data
+        - name: cdb
           persistentVolumeClaim:
             claimName: {{ tpl .Values.persistence.existingClaim . }}
   {{- else if not .Values.persistence.enabled }}
-        - name: data
+        - name: cdb
           emptyDir: {}
   {{- else if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
   {{- if .Values.persistentVolumeClaimRetentionPolicy.enabled }}
@@ -250,9 +340,8 @@ spec:
   {{- end }}
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: cdb
         labels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 10 }}
-          app.kubernetes.io/component: primary
         {{- if or .Values.persistence.annotations .Values.commonAnnotations }}
         {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list  .Values.persistence.annotations .Values.commonAnnotations ) "context" . ) }}
         annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 10 }}
@@ -269,4 +358,7 @@ spec:
         {{- if .Values.persistence.selector }}
         selector: {{- include "common.tplvalues.render" (dict "value" .Values.persistence.selector "context" $) | nindent 10 }}
         {{- end -}}
+    {{- if .Values.extraVolumeClaimTemplates }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeClaimTemplates "context" $) | nindent 4 }}
+    {{- end }}
   {{- end }}

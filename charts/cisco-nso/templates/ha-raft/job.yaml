@@ -1,0 +1,3 @@
+{{/* ha-raft create-cluster */}}
+{{/* ha-raft adjust-membership remove-node */}}
+{{/* ha-raft reset */}}

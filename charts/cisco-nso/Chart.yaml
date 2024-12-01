@@ -1,15 +1,18 @@
 apiVersion: v2
-version: 1.0.0
+version: 2.0.0
 name: cisco-nso
 description: Cisco Network Services Orchestrator (NSO)
-appVersion: "6.3.1"
+appVersion: "6.3.4"
 type: application
 keywords:
   - network
+  - cisco
+  - nso
+  - orchestrator
 home: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-services-orchestrator/index.html
-icon: https://storage.googleapis.com/blogs-images/ciscoblogs/1/2020/04/f3bc2eea-nso-logo.png
+icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
 sources:
-  - https://gitlab.com/nso-developer/nso-docker
+  - https://developer.cisco.com/docs/nso/
 maintainers:
   - name: LeoColomb
     url: https://github.com/LeoColomb
@@ -21,11 +24,18 @@ dependencies:
     tags:
       - bitnami-common
 annotations:
-  artifacthub.io/license: MIT
+  artifacthub.io/license: Apache-2.0
   artifacthub.io/links: |
-    - name: Upstream Container Image
-      url: https://gitlab.com/nso-developer/nso-docker
     - name: Upstream Documentation
-      url: https://developer.cisco.com/docs/nso/guides/
-    - name: Upstream Dev Documentation
-      url: https://cisco-tail-f.gitbook.io/nso-documentation
+      url: https://developer.cisco.com/docs/nso/
+    - name: Deploying Cisco NSO on Kubernetes
+      url: https://developer.cisco.com/docs/nso/deploying-cisco-nso-on-kubernetes/
+  artifacthub.io/signKey: |
+    fingerprint: 7D422B98DC0F24610C5807CBB9FDEEE84C92D2AA
+    url: https://leocolomb.github.io/charts/gpg.pub
+  artifacthub.io/changes: |
+    - kind: changed
+      description: New release
+      links:
+        - name: Changelog on GitHub Releases
+          url: https://github.com/LeoColomb/charts/releases?q=cisco-nso-
