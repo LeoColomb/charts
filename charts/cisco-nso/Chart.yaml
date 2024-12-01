@@ -1,5 +1,5 @@
 apiVersion: v2
-version: 2.0.0
+version: 2.0.1
 name: cisco-nso
 description: Cisco Network Services Orchestrator (NSO)
 appVersion: "6.3.4"
@@ -20,7 +20,7 @@ kubeVersion: ^1.23.0-0
 dependencies:
   - name: common
     repository: oci://registry-1.docker.io/bitnamicharts
-    version: ^2.26.0
+    version: ^2.27.2
     tags:
       - bitnami-common
 annotations:
