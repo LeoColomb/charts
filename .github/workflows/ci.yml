@@ -42,6 +42,7 @@ jobs:
     uses: ./.github/workflows/test.yml
     with:
       action-matrix: '["lint", "install", "install --upgrade"]'
+    secrets: inherit
 
   release:
     name: Release
