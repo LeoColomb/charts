@@ -1,0 +1,39 @@
+apiVersion: v1
+entries:
+  cisco-nso:
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: Upstream Container Image
+          url: https://gitlab.com/nso-developer/nso-docker
+        - name: Upstream Documentation
+          url: https://developer.cisco.com/docs/nso/guides/
+        - name: Upstream Dev Documentation
+          url: https://cisco-tail-f.gitbook.io/nso-documentation
+    apiVersion: v2
+    appVersion: 6.3.1
+    created: "2024-12-01T22:46:51.022822011Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: ^2.26.0
+    description: Cisco Network Services Orchestrator (NSO)
+    digest: 6ac8f51a8f4a74312ce0f8f3bbcf1cad3d1bc1fbbda661106e6842366c8e80c6
+    home: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-services-orchestrator/index.html
+    icon: https://storage.googleapis.com/blogs-images/ciscoblogs/1/2020/04/f3bc2eea-nso-logo.png
+    keywords:
+    - network
+    kubeVersion: ^1.23.0-0
+    maintainers:
+    - name: LeoColomb
+      url: https://github.com/LeoColomb
+    name: cisco-nso
+    sources:
+    - https://gitlab.com/nso-developer/nso-docker
+    type: application
+    urls:
+    - https://github.com/LeoColomb/charts/releases/download/cisco-nso-1.0.0/cisco-nso-1.0.0.tgz
+    version: 1.0.0
+generated: "2024-12-01T22:46:51.02283219Z"
