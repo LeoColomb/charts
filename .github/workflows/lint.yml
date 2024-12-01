@@ -1,4 +1,3 @@
-# yamllint disable rule:document-start
 # https://docs.github.com/actions
 
 name: Lint
@@ -20,3 +19,5 @@ jobs:
   super-linter:
     name: Super Linter
     uses: LeoColomb/.github/.github/workflows/lint.yml@main
+    with:
+      exclude: charts/\w+/templates/.*\.yaml

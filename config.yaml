@@ -1,0 +1,9 @@
+owner: LeoColomb
+repo: charts
+remote: origin
+target-branch: main
+sign: true
+key: LeoColomb
+chart-dirs:
+  - charts
+generate-release-notes: true
