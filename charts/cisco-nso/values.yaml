@@ -541,9 +541,9 @@ ingress:
   ## secrets:
   ##   - name: nso.local-tls
   ##     key: |-
-  ##       -----BEGIN RSA PRIVATE KEY-----
+  ##       -----BEGIN RSA KEY-----
   ##       ...
-  ##       -----END RSA PRIVATE KEY-----
+  ##       -----END RSA KEY-----
   ##     certificate: |-
   ##       -----BEGIN CERTIFICATE-----
   ##       ...
