@@ -8,3 +8,7 @@
 
 # Reduce conflicts on markdown files
 *.md merge=union
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+*.conf linguist-language=xml
