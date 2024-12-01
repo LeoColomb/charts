@@ -1,0 +1,32 @@
+image:
+  pullSecrets:
+    - ci-regcred
+
+extraDeploy:
+  - |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: {{ mustFirst .Values.image.pullSecrets }}
+        namespace: {{ include "common.names.namespace" . | quote }}
+        labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+          app.kubernetes.io/component: cisco-nso
+        {{- if .Values.commonAnnotations }}
+        annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+        {{- end }}
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: {{ .Values.ciPullSecrets }}
+
+customPreNcsStartScripts:
+  50-merge-config.py: |2
+    {{- .Files.Get "files/50-merge-config.py" | nindent 2 }}
+
+# backups:
+#   enabled: true
+#   cronjob:
+#     annotations:
+#       helm.sh/hook: pre-upgrade
+
+# ingress:
+#   enabled: true

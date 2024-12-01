@@ -1,0 +1,102 @@
+{{- if .Values.backups.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ printf "%s-backups" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: backups
+  {{- if or .Values.backups.cronjob.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.ingress.annotations .Values.commonAnnotations ) "context" . ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  concurrencyPolicy: {{ .Values.backups.cronjob.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.backups.cronjob.failedJobsHistoryLimit }}
+  schedule: {{ .Values.backups.cronjob.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.backups.cronjob.successfulJobsHistoryLimit }}
+  suspend: {{ .Values.backups.cronjob.suspend }}
+  jobTemplate:
+    metadata:
+      labels: {{- include "common.labels.standard" . | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          {{- if .Values.backups.cronjob.podAnnotations }}
+          annotations:
+            {{- include "common.tplvalues.render" ( dict "value" .Values.backups.cronjob.podAnnotations "context" $ ) | nindent 12 }}
+          {{- end }}
+          labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.backups.cronjob.podLabels "context" $ ) | nindent 12 }}
+            app.kubernetes.io/component: backups
+        spec:
+          {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 10 }}
+          serviceAccountName: {{ .Values.serviceAccountName }}
+          automountServiceAccountToken: {{ .Values.backups.cronjob.automountServiceAccountToken }}
+          {{- if .Values.backups.cronjob.podSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backups.cronjob.podSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.backups.cronjob.initContainers }}
+          initContainers: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.initContainers "context" $) | trim | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: {{ printf "%s-backups" .Chart.Name | trunc 63 | trimSuffix "-" }}
+              {{- if .Values.backups.cronjob.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backups.cronjob.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
+              image: {{ include "nso.image" . | quote }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- if .Values.backups.cronjob.command }}
+              command: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.command "context" $) | nindent 16 }}
+              {{- end }}
+              {{- if .Values.backups.cronjob.args }}
+              args: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.args "context" $) | nindent 16 }}
+              {{- end }}
+              {{- if .Values.backups.cronjob.extraEnvVars }}
+              env: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraEnvVars "context" $) | nindent 16 }}
+              {{- end }}
+              {{- if or .Values.backups.cronjob.extraEnvVarsCM .Values.backups.cronjob.extraEnvVarsSecret }}
+              envFrom:
+                {{- if .Values.backups.cronjob.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if .Values.backups.cronjob.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              {{- end }}
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+                  {{- if .Values.backups.pvc.subPath }}
+                  subPath: {{ .Values.backups.pvc.subPath }}
+                  {{- end }}
+                {{- if .Values.backups.extraVolumeMounts }}
+                {{- include "common.tplvalues.render" (dict "value" .Values.backups.extraVolumeMounts "context" $) | nindent 16 }}
+                {{- end }}
+              {{- if .Values.backups.cronjob.resources }}
+              resources: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.resources "context" $) | nindent 16 }}
+              {{- else if ne .Values.backups.cronjob.resourcesPreset "none" }}
+              resources: {{- include "common.resources.preset" (dict "type" .Values.backups.cronjob.resourcesPreset) | nindent 16 }}
+              {{- end }}
+          {{- if .Values.backups.cronjob.sidecars }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.sidecars "context" $) | nindent 10 }}
+          {{- end }}
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: {{ include "nso.backups.pvc.name" . }}
+            {{- if .Values.backups.cronjob.extraVolumes }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraVolumes "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.backups.cronjob.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.backups.cronjob.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.backups.cronjob.affinity }}
+          affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.backups.cronjob.affinity "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.backups.cronjob.tolerations }}
+          tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.tolerations "context" .) | nindent 12 }}
+          {{- end }}
+          restartPolicy: {{ .Values.backups.cronjob.restartPolicy }}
+{{- end -}}

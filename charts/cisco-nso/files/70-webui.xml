@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ncs-config xmlns="http://tail-f.com/yang/tailf-ncs-config">
+  <webui>
+    <enabled>true</enabled>
+    <transport>
+      <tcp>
+        <enabled>true</enabled>
+        <port>{{ .Values.containerPorts.webui }}</port>
+      </tcp>
+    </transport>
+  </webui>
+</ncs-config>
