@@ -10,6 +10,9 @@ home: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-se
 icon: https://storage.googleapis.com/blogs-images/ciscoblogs/1/2020/04/f3bc2eea-nso-logo.png
 sources:
   - https://gitlab.com/nso-developer/nso-docker
+maintainers:
+  - name: LeoColomb
+    url: https://github.com/LeoColomb
 kubeVersion: ^1.23.0-0
 dependencies:
   - name: common
