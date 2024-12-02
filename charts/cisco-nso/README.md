@@ -21,7 +21,7 @@ This Helm chart enforces [best practices for deploying NSO on Kubernetes](https:
 >
 > Cisco Network Services Orchestrator (NSO) container image must be provided by the user of the chart,
 > based or built on top of the official NSO Docker Image distributed by Cisco Systems, Inc.  
-> The following value must be used to setup the image reference: `image.repository`.
+> The following values must be used to setup the image reference: `image.*`.
 
 ## Usage
 
