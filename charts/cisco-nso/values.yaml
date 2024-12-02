@@ -99,7 +99,7 @@ packages:
 ## @section NSO Configuration parameters
 
 ## NSO settings based on environment variables
-## ref: https://developer.cisco.com/docs/nso/guides/ncs-man-pages-volume-5/#ncs-conf
+## ref: https://developer.cisco.com/docs/nso/api/ncs-man-pages-volume-5/#ncs-conf
 
 ## Authentication parameters
 ##
