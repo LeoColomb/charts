@@ -58,7 +58,7 @@ diagnosticMode:
 ## @section NSO Image parameters
 image:
   registry: ghcr.io
-  repository: ""
+  repository: cisco-nso-prod
   ## Defaults to '{{ .Chart.AppVersion }}'
   ##
   tag: ""
