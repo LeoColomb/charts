@@ -77,8 +77,29 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
-        {{- if and .Values.podSecurityContext.enabled .Values.volumePermissions.enabled .Values.persistence.enabled }}
-        - name: volume-permissions
+        - name: config-volume-setup
+          image: {{ include "nso.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              cp -pr "${NCS_CONFIG_DIR}"/* "/etc/ncs-setup/"
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.volumePermissions.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
+          {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/ncs-setup
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+        - name: run-volume-permissions
           image: {{ include "nso.volumePermissions.image" . }}
           imagePullPolicy: {{ .Values.volumePermissions.image.pullPolicy | quote }}
           command:
@@ -86,14 +107,16 @@ spec:
             - -ec
             - |
               mkdir -p \
+                "/nso/run/backups" \
                 "/nso/run/cdb" \
+                "/nso/run/packages" \
                 "/nso/run/rollbacks" \
                 "/nso/run/scripts" \
-                "/nso/run/streams" \
                 "/nso/run/state" \
-                "/nso/run/backups" \
-                "/nso/run/packages"
-              chown "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}" "/nso"
+                "/nso/run/storedstate" \
+                "/nso/run/streams" \
+                "/nso/run/target"
+              chown "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}" "/nso/run"
               find "/nso/run" -mindepth 1 -maxdepth 2 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}"
           securityContext:
             runAsUser: 0
@@ -103,12 +126,11 @@ spec:
           resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: cdb
-              mountPath: /nso/run/cdb
+            - name: run
+              mountPath: /nso/run
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
-        {{- end }}
         {{- if .Values.initContainers }}
         {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
         {{- end }}
@@ -239,25 +261,24 @@ spec:
           resources: {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: cdb
-              mountPath: /nso/run/cdb
-            - name: rollbacks
-              mountPath: /nso/run/rollbacks
-            - name: scripts
-              mountPath: /nso/run/scripts
-            - name: streams
-              mountPath: /nso/run/streams
-            - name: state
-              mountPath: /nso/run/state
+            - name: run
+              mountPath: /nso/run
             - name: backups
-              mountPath: /nso/run/backups
+              mountPath: {{ default "/nso/run/backups" .Values.backups.mountPath | quote }}
             - name: packages
-              mountPath: {{ .Values.packages.mountPath | quote }}
-            - name: traces
-              mountPath: /log/traces
-            - name: configuration
+              mountPath: {{ default "/nso/run/packages" .Values.packages.mountPath | quote }}
+            - name: logs
+              mountPath: /log
+            - name: secrets
+              mountPath: /nso/etc/
+            - name: conf
+              mountPath: /etc/ncs
+            - name: conf-d
               mountPath: /etc/ncs/ncs.conf.d
               readOnly: true
+            - name: custom-pre-ncs-start
+              mountPath: /etc/ncs/pre-ncs-start.d/50-merge-config.py
+              subPath: 50-merge-config.py
             {{- range $name, $_ := .Values.customPreNcsStartScripts }}
             - name: custom-pre-ncs-start
               mountPath: {{ printf "/etc/ncs/pre-ncs-start.d/%s" $name }}
@@ -280,13 +301,9 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
       volumes:
-        - name: rollbacks
+        - name: secrets
           emptyDir: {}
-        - name: scripts
-          emptyDir: {}
-        - name: streams
-          emptyDir: {}
-        - name: state
+        - name: conf
           emptyDir: {}
         - name: backups
           emptyDir: {}
@@ -298,18 +315,16 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
-        - name: traces
+        - name: logs
           emptyDir:
             sizeLimit: 500Mi
-        - name: configuration
+        - name: conf-d
           configMap:
             name: {{ printf "%s-configuration" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
-        {{- if .Values.customPreNcsStartScripts }}
         - name: custom-pre-ncs-start
           configMap:
             name: {{ printf "%s-pre-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0755
-        {{- end }}
         {{- if .Values.customPostNcsStartScripts }}
         - name: custom-post-ncs-start
           configMap:
@@ -326,11 +341,11 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
   {{- if and .Values.persistence.enabled .Values.persistence.existingClaim }}
-        - name: cdb
+        - name: run
           persistentVolumeClaim:
             claimName: {{ tpl .Values.persistence.existingClaim . }}
   {{- else if not .Values.persistence.enabled }}
-        - name: cdb
+        - name: run
           emptyDir: {}
   {{- else if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
   {{- if .Values.persistentVolumeClaimRetentionPolicy.enabled }}
@@ -340,7 +355,7 @@ spec:
   {{- end }}
   volumeClaimTemplates:
     - metadata:
-        name: cdb
+        name: run
         labels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 10 }}
         {{- if or .Values.persistence.annotations .Values.commonAnnotations }}
         {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list  .Values.persistence.annotations .Values.commonAnnotations ) "context" . ) }}

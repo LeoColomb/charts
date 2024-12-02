@@ -18,10 +18,6 @@ extraDeploy:
       data:
         .dockerconfigjson: {{ .Values.ciPullSecrets }}
 
-customPreNcsStartScripts:
-  50-merge-config.py: |2
-    {{- .Files.Get "files/50-merge-config.py" | nindent 2 }}
-
 # backups:
 #   enabled: true
 #   cronjob:
