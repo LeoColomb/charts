@@ -13,6 +13,7 @@ keywords:
 home: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-services-orchestrator/index.html
 icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
 sources:
+  - https://github.com/LeoColomb/charts
   - https://developer.cisco.com/docs/nso/
 maintainers:
   - name: LeoColomb
