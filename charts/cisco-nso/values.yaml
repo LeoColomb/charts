@@ -219,12 +219,12 @@ backups:
       runAsGroup: 1001
       runAsNonRoot: true
       privileged: false
-      readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
       capabilities:
         drop: ["ALL"]
       seccompProfile:
-        type: "RuntimeDefault"
+        type: RuntimeDefault
     ## Configure resource requests and limits for snapshotter containers
     ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     ## We usually recommend not to specify default resources and to leave this as a conscious
@@ -234,7 +234,7 @@ backups:
     ## @param backups.cronjob.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if backups.cronjob.resources is set (backups.cronjob.resources is recommended for production).
     ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
     ##
-    resourcesPreset: "xlarge"
+    resourcesPreset: "medium"
     ## @param backups.cronjob.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
     ## Example:
     ## resources:
@@ -523,7 +523,7 @@ tolerations: []
 ## This is ignored if resources is set (resources is recommended for production).
 ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
 ##
-resourcesPreset: "2xlarge"
+resourcesPreset: "medium"
 ## Containers' resource requests and limits
 ## ref: https://kubernetes.io/docs/user-guide/compute-resources/
 ## @param resources.limits The resources limits for the container
@@ -562,11 +562,11 @@ containerSecurityContext:
   runAsGroup: 0
   runAsNonRoot: false
   privileged: false
-  readOnlyRootFilesystem: false
   allowPrivilegeEscalation: false
+  # readOnlyRootFilesystem: true => /var/run/crond.pid, /etc/logrotate.d/ncs
+  readOnlyRootFilesystem: false
   capabilities:
     drop: [ALL]
-    # add: [NET_ADMIN, NET_BIND_SERVICE]
   seccompProfile:
     type: RuntimeDefault
 ## Configure extra options for liveness probe
