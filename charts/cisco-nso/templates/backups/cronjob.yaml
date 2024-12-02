@@ -29,7 +29,7 @@ spec:
           labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.backups.cronjob.podLabels "context" $ ) | nindent 12 }}
             app.kubernetes.io/component: backups
         spec:
-          {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 10 }}
+          {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.backups.cronjob.image) "context" $) | nindent 10 }}
           serviceAccountName: {{ .Values.serviceAccountName }}
           automountServiceAccountToken: {{ .Values.backups.cronjob.automountServiceAccountToken }}
           {{- if .Values.backups.cronjob.podSecurityContext.enabled }}
@@ -40,20 +40,21 @@ spec:
           {{- end }}
           containers:
             - name: {{ printf "%s-backups" .Chart.Name | trunc 63 | trimSuffix "-" }}
+              image: {{ include "nso.backupsCronJob.image" . | quote }}
+              imagePullPolicy: {{ .Values.backups.cronjob.pullPolicy | quote }}
               {{- if .Values.backups.cronjob.containerSecurityContext.enabled }}
               securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backups.cronjob.containerSecurityContext "context" $) | nindent 16 }}
               {{- end }}
-              image: {{ include "nso.image" . | quote }}
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
               {{- if .Values.backups.cronjob.command }}
               command: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.command "context" $) | nindent 16 }}
               {{- end }}
               {{- if .Values.backups.cronjob.args }}
               args: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.args "context" $) | nindent 16 }}
               {{- end }}
-              {{- if .Values.backups.cronjob.extraEnvVars }}
-              env: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraEnvVars "context" $) | nindent 16 }}
-              {{- end }}
+              env:
+                {{- if .Values.extraEnvVars }}
+                {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraEnvVars "context" $) | nindent 16 }}
+                {{- end }}
               {{- if or .Values.backups.cronjob.extraEnvVarsCM .Values.backups.cronjob.extraEnvVarsSecret }}
               envFrom:
                 {{- if .Values.backups.cronjob.extraEnvVarsCM }}
@@ -65,24 +66,30 @@ spec:
                     name: {{ include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.extraEnvVarsSecret "context" $) }}
                 {{- end }}
               {{- end }}
+              {{- if .Values.backups.cronjob.resources }}
+              resources: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.resources "context" $) | nindent 16 }}
+              {{- else if ne .Values.backups.cronjob.resourcesPreset "none" }}
+              resources: {{- include "common.resources.preset" (dict "type" .Values.backups.cronjob.resourcesPreset) | nindent 16 }}
+              {{- end }}
               volumeMounts:
+                - name: run
+                  mountPath: /nso/run
+                  readOnly: true
                 - name: backups
-                  mountPath: /backups
+                  mountPath: {{ default (printf "%s/backups" "/nso/run") .Values.backups.customMountPath | quote }}
                   {{- if .Values.backups.pvc.subPath }}
                   subPath: {{ .Values.backups.pvc.subPath }}
                   {{- end }}
                 {{- if .Values.backups.extraVolumeMounts }}
                 {{- include "common.tplvalues.render" (dict "value" .Values.backups.extraVolumeMounts "context" $) | nindent 16 }}
                 {{- end }}
-              {{- if .Values.backups.cronjob.resources }}
-              resources: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.resources "context" $) | nindent 16 }}
-              {{- else if ne .Values.backups.cronjob.resourcesPreset "none" }}
-              resources: {{- include "common.resources.preset" (dict "type" .Values.backups.cronjob.resourcesPreset) | nindent 16 }}
-              {{- end }}
           {{- if .Values.backups.cronjob.sidecars }}
           {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.sidecars "context" $) | nindent 10 }}
           {{- end }}
           volumes:
+            - name: run
+              persistentVolumeClaim:
+                claimName: {{ include "nso.run.pvc.name" . }}
             - name: backups
               persistentVolumeClaim:
                 claimName: {{ include "nso.backups.pvc.name" . }}
@@ -99,4 +106,4 @@ spec:
           tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.backups.cronjob.tolerations "context" .) | nindent 12 }}
           {{- end }}
           restartPolicy: {{ .Values.backups.cronjob.restartPolicy }}
-{{- end -}}
+{{- end }}
