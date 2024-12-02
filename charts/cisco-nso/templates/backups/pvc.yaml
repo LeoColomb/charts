@@ -15,4 +15,4 @@ spec:
     requests:
       storage: {{ .Values.backups.pvc.size | quote }}
   storageClassName: {{ .Values.backups.pvc.storageClassName | quote }}
-{{- end -}}
+{{- end }}

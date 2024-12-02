@@ -166,28 +166,48 @@ extraConfig:
   existingConfigMap: ""
   existingSecret: ""
 
-## Enable auto disaster recovery by periodically snapshotting the keyspace:
-## - It creates a cronjob to periodically snapshotting the keyspace
-## - It also creates a ReadWriteMany PVC to store the snapshots
-## If the cluster permanently loses more than (N-1)/2 members, it tries to
-## recover itself from the last available snapshot.
+## Enable disaster recovery by periodically backuping the database:
+## - It creates a cronjob to periodically backuping the database
+## - It also creates a ReadWriteMany PVC to store the backups
 ##
 backups:
-  ## @param backups.enabled Enable auto disaster recovery by periodically snapshotting the keyspace
+  ## @param backups.enabled Enable disaster recovery by periodically backuping the database
   ##
   enabled: false
   ## @param backups.customMountPath
   ##
   customMountPath: ""
   cronjob:
-    ## @param backups.cronjob.schedule Schedule in Cron format to save snapshots
+    image:
+      registry: ghcr.io
+      ## Defaults to main NSO image
+      ##
+      repository: ""
+      ## Defaults to '{{ .Chart.AppVersion }}'
+      ##
+      tag: ""
+      digest: ""
+      ## Specify a imagePullPolicy
+      ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+      ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+      ##
+      pullPolicy: IfNotPresent
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ## e.g:
+      ## pullSecrets:
+      ##   - myRegistryKeySecretName
+      ##
+      pullSecrets: []
+    ## @param backups.cronjob.schedule Schedule in Cron format to save backups
     ## See https://en.wikipedia.org/wiki/Cron
     ##
     schedule: "*/30 * * * *"
     ## @param backups.cronjob.historyLimit Number of successful finished jobs to retain
     ##
     historyLimit: 1
-    ## @param backups.cronjob.snapshotHistoryLimit Number of etcd snapshots to retain, tagged by date
+    ## @param backups.cronjob.backupHistoryLimit Number of etcd backups to retain, tagged by date
     ##
     backupHistoryLimit: 1
     ## @param backups.cronjob.restartPolicy Set the cronjob parameter restartPolicy
@@ -200,13 +220,13 @@ backups:
     ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
     ##
     podAnnotations: {}
-    ## K8s Security Context for Snapshotter cronjob pods
+    ## K8s Security Context for backup cronjob pods
     ## https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-    ## @param backups.cronjob.podSecurityContext.enabled Enable security context for Snapshotter pods
+    ## @param backups.cronjob.podSecurityContext.enabled Enable security context for backup pods
     ## @param backups.cronjob.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy
     ## @param backups.cronjob.podSecurityContext.sysctls Set kernel settings using the sysctl interface
     ## @param backups.cronjob.podSecurityContext.supplementalGroups Set filesystem extra groups
-    ## @param backups.cronjob.podSecurityContext.fsGroup Group ID for the Snapshotter filesystem
+    ## @param backups.cronjob.podSecurityContext.fsGroup Group ID for the backup filesystem
     ##
     podSecurityContext:
       enabled: true
@@ -214,7 +234,7 @@ backups:
       sysctls: []
       supplementalGroups: []
       fsGroup: 1001
-    ## Configure container security context for Snapshotter cronjob containers
+    ## Configure container security context for backup cronjob containers
     ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
     ## @param backups.cronjob.containerSecurityContext.enabled Enabled containers' Security Context
     ## @param backups.cronjob.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in container
@@ -240,7 +260,7 @@ backups:
         drop: ["ALL"]
       seccompProfile:
         type: RuntimeDefault
-    ## Configure resource requests and limits for snapshotter containers
+    ## Configure resource requests and limits for backup containers
     ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
     ## We usually recommend not to specify default resources and to leave this as a conscious
     ## choice for the user. This also increases chances charts run on environments with little
@@ -275,10 +295,13 @@ backups:
     ## @param backups.cronjob.serviceAccountName Specifies the service account to use for disaster recovery cronjob
     ##
     serviceAccountName: ""
-    ## @param backups.cronjob.command Override default snapshot container command (useful when you want to customize the snapshot logic)
+    ## @param backups.cronjob.command Override default backup container command (useful when you want to customize the backup logic)
     ##
-    command: []
+    command:
+      - /opt/ncs/current/bin/ncs-backup
+    ## @param backups.cronjob.args Override default backup container args
     ##
+    args: []
   pvc:
     ## @param backups.pvc.existingClaim A manually managed Persistent Volume and Claim
     ## If defined, PVC must be created manually before volume will be bound
@@ -288,13 +311,65 @@ backups:
     ## @param backups.pvc.size PVC Storage Request
     ##
     size: 50Gi
-    ## @param backups.pvc.storageClassName Storage Class for snapshots volume
+    ## @param backups.pvc.storageClassName Storage Class for backup volume
     ##
     storageClassName: ""
     ## @param backups.pvc.subPath Path within the volume from which to mount
-    ## Useful if snapshots should only be stored in a subdirectory of the volume
+    ## Useful if backups should only be stored in a subdirectory of the volume
     ##
     subPath: ""
+
+## Start a new cluster restoring the data from an existing backup before bootstrapping
+##
+restoreFromBackup:
+  ## @param restoreFromBackup.enabled Initialize new cluster recovering an existing backup
+  ##
+  enabled: false
+  ## @param restoreFromBackup.existingClaim Existing PVC containing the NSO backup
+  ##
+  existingClaim: ""
+  ## @param restoreFromBackup.backupFilename Backup filename
+  ##
+  backupFilename: ""
+  ## @param restoreFromBackup.restoreConfig Restore NCS_CONFIG_DIR from the backup
+  ##
+  restoreConfig: false
+  ## @param restoreFromBackup.image.registry [default: REGISTRY_NAME] Init container restore-backup image registry
+  ## @param restoreFromBackup.image.repository [default: REPOSITORY_NAME/os-shell] Init container restore-backup image repository
+  ## @skip restoreFromBackup.image.tag Init container restore-backup image tag (immutable tags are recommended)
+  ## @param restoreFromBackup.image.digest Init container restore-backup image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+  ## @param restoreFromBackup.image.pullPolicy Init container restore-backup image pull policy
+  ## @param restoreFromBackup.image.pullSecrets Specify docker-registry secret names as an array
+  ##
+  image:
+    registry: ghcr.io
+    repository: ""
+    tag: ""
+    digest: ""
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ## e.g:
+    ## pullSecrets:
+    ##   - myRegistryKeySecretName
+    ##
+    pullSecrets: []
+  ## @param restoreFromBackup.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if volumePermissions.resources is set (volumePermissions.resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: "small"
+  ## @param restoreFromBackup.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## Example:
+  ## resources:
+  ##   requests:
+  ##     cpu: 2
+  ##     memory: 512Mi
+  ##   limits:
+  ##     cpu: 3
+  ##     memory: 1024Mi
+  ##
+  resources: {}
 
 ## NSO HA Raft parameters
 ## ref: https://cisco-tailf.gitbook.io/nso-docs/administration/management/high-availability
@@ -666,6 +741,12 @@ extraPodSpec: {}
 ## @param extraPorts Extra ports to expose
 ##
 extraPorts: []
+## @param command Override default container command
+##
+command: []
+## @param args Override default container args
+##
+args: []
 
 ## @section Traffic Exposure Parameters
 
