@@ -152,6 +152,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: NCS_RUN_DIR
+              value: {{ .Values.ncs.runPath | quote }}
+            - name: NCS_CONFIG_DIR
+              value: {{ .Values.ncs.configPath | quote }}
+            - name: NCS_LOG_DIR
+              value: {{ .Values.ncs.logPath | quote }}
+            - name: EXTRA_ARGS
+              value: {{ .Values.ncs.extraArgs | quote }}
+            - name: NCS_JAVA_VM_OPTIONS
+              value: {{ .Values.ncs.javaVmOptions | quote }}
             - name: ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -167,16 +177,10 @@ spec:
             #     secretKeyRef:
             #       name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
             #       key: ssh-privatekey
-            - name: CLI_STYLE
-              value: "{{ .Values.cliStyle }}"
-            - name: PAM
-              value: "{{ .Values.pam }}"
-            - name: AUTO_WIZARD
-              value: "{{ .Values.autoWizard }}"
-            - name: XPATH_TRACE
-              value: "{{ .Values.xpathTrace }}"
-            - name: DEVEL_LOG_LEVEL
-              value: "{{ .Values.logLevel }}"
+            - name: LOGROTATE_ENABLE
+              value: {{ "true" | quote }}
+            - name: CRON_ENABLE
+              value: {{ "true" | quote }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
@@ -262,31 +266,31 @@ spec:
           {{- end }}
           volumeMounts:
             - name: run
-              mountPath: /nso/run
+              mountPath: {{ .Values.ncs.runPath | quote }}
             - name: backups
-              mountPath: {{ default "/nso/run/backups" .Values.backups.mountPath | quote }}
+              mountPath: {{ default (printf "%s/backups" .Values.ncs.runPath) .Values.backups.customMountPath | quote }}
             - name: packages
-              mountPath: {{ default "/nso/run/packages" .Values.packages.mountPath | quote }}
+              mountPath: {{ default (printf "%s/packages" .Values.ncs.runPath) .Values.packages.customMountPath | quote }}
             - name: logs
-              mountPath: /log
+              mountPath: {{ .Values.ncs.logPath | quote }}
             - name: secrets
               mountPath: /nso/etc/
             - name: conf
-              mountPath: /etc/ncs
+              mountPath: {{ .Values.ncs.configPath | quote }}
             - name: conf-d
-              mountPath: /etc/ncs/ncs.conf.d
+              mountPath: {{ printf "%s/ncs.conf.d" .Values.ncs.configPath }}
               readOnly: true
             - name: custom-pre-ncs-start
-              mountPath: /etc/ncs/pre-ncs-start.d/50-merge-config.py
+              mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath "50-merge-config.py" }}
               subPath: 50-merge-config.py
             {{- range $name, $_ := .Values.customPreNcsStartScripts }}
             - name: custom-pre-ncs-start
-              mountPath: {{ printf "/etc/ncs/pre-ncs-start.d/%s" $name }}
+              mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath $name }}
               subPath: {{ $name | quote }}
             {{- end }}
             {{- range $name, $_ := .Values.customPostNcsStartScripts }}
             - name: custom-post-ncs-start
-              mountPath: {{ printf "/etc/ncs/post-ncs-start.d/%s" $name }}
+              mountPath: {{ printf "%s/post-ncs-start.d/%s" .Values.ncs.configPath $name }}
               subPath: {{ $name | quote }}
             {{- end }}
             {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}

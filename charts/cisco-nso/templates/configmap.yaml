@@ -11,6 +11,6 @@ metadata:
 data:
   {{- include "common.tplvalues.render" ( dict "value" (.Files.Glob "files/*.{conf,xml}").AsConfig "context" $ ) | nindent 2 }}
   {{- if .Values.extraConfig.raw }}
-  99-custom-nso.conf: |-
+  99-custom-nso.xml: |-
     {{- include "common.tplvalues.render" ( dict "value" .Values.extraConfig.raw "context" $ ) | nindent 4 }}
   {{- end }}

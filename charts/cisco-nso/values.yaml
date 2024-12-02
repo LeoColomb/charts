@@ -92,9 +92,9 @@ packages:
   ## ref: https://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
   pullPolicy: IfNotPresent
-  ## @param packages.pvc.mountPath
+  ## @param packages.customMountPath
   ##
-  mountPath: /nso/run/packages
+  customMountPath: ""
 
 ## @section NSO Configuration parameters
 
@@ -121,18 +121,25 @@ auth:
   ##
   existingSecret: ""
 
-## @param cliStyle Configure the default CLI style to `j` or `c`
+## Running parameters
 ##
-cliStyle: c
-## @param pam Enable PAM instead of local auth in NSO (AAA)
-##
-pam: false
-## @param xpathTrace Enable XPath tracing
-##
-xpathTrace: false
-## @param logLevel Sets the log level for the NSO process. Allowed values: 'debug', 'info', 'warn', 'error', 'panic', 'fatal'
-##
-logLevel: info
+ncs:
+  ## @param ncs.runPath NCS_RUN_DIR
+  ##
+  runPath: /nso/run
+  ## @param ncs.configPath NCS_CONFIG_DIR
+  ##
+  configPath: /etc/ncs
+  ## @param ncs.logPath NCS_LOG_DIR
+  ##
+  logPath: /log
+  ## @param ncs.extraArgs Pass additional arguments to ncs
+  ## e.g. extraArgs: --with-package-reload-force (enabled by default)
+  ##
+  extraArgs: ""
+  ## @param ncs.javaVmOptions JAVA VM Options
+  ##
+  javaVmOptions: ""
 
 ## Extra configuration settings
 # You can pass an additional XML file to be merged with NCS configuration.
@@ -140,7 +147,12 @@ logLevel: info
 # you can load arbitrary *.conf keys from ConfigMaps and Secrets.
 # extraConfig:
 #   raw: |
-#     <xml></xml>
+#     <?xml version="1.0" encoding="UTF-8"?>
+#     <ncs-config xmlns="http://tail-f.com/yang/tailf-ncs-config">
+#       <cli>
+#         <style>c</style>
+#       </cli>
+#     </ncs-config>
 #   existingConfigMap: # pod.spec.volumes.configMap
 #     name: nso-extra
 #     items: []
@@ -164,6 +176,9 @@ backups:
   ## @param backups.enabled Enable auto disaster recovery by periodically snapshotting the keyspace
   ##
   enabled: false
+  ## @param backups.customMountPath
+  ##
+  customMountPath: ""
   cronjob:
     ## @param backups.cronjob.schedule Schedule in Cron format to save snapshots
     ## See https://en.wikipedia.org/wiki/Cron

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ncs-config xmlns="http://tail-f.com/yang/tailf-ncs-config">
-  <load-path>
-    <dir>{{ .Values.packages.mountPath }}</dir>
-  </load-path>
-</ncs-config>
