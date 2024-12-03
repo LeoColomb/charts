@@ -25,7 +25,7 @@ This Helm chart enforces [best practices for deploying NSO on Kubernetes](https:
 ### Security Considerations
 
 - **SecurityContext**: Limits the Linux capabilities that are allowed for the NSO container and ensures NSO runs as a dedicated user. This can help in adhering to the principle of least privilege. (Requires a custom container image with proper user configuration)
-  <!-- - **Ingress and Egress Control**: Implements NetworkPolicies to restrict access to NSO instances and managed devices. Limits the communication to trusted IP ranges and namespaces. -->
+- **Ingress and Egress Control**: Implements NetworkPolicies to restrict access to NSO instances and managed devices. Limits the communication to trusted IP ranges and namespaces.
 - **Service Accounts**: Creates dedicated service accounts for NSO pods to minimize permissions and reduce security risks. This ensures that each service account only has the permissions it needs for its tasks.
 
 ### Monitoring & Logging
