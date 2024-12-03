@@ -409,6 +409,8 @@ haRaft:
     ## @param haRaft.service.port HA Raft server port
     ##
     port: 4369
+  readinessProbe:
+    enabled: true
 
 ## @section Deployment parameters
 
@@ -416,6 +418,10 @@ haRaft:
 ## NOTE: ReadWriteMany PVC(s) are required if replicaCount > 1
 ##
 replicaCount: 1
+## @param podManagementPolicy Pod management policy for the NSO statefulset
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
+##
+podManagementPolicy: Parallel
 ## Enable persistence using Persistent Volume Claims
 ## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 ## @param persistence.enabled Enable persistence using PVC
@@ -507,11 +513,10 @@ serviceAccount:
 ## @param hostAliases [array] Pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
-hostAliases:
-  ## Required for apache-exporter to work
-  - ip: "127.0.0.1"
-    hostnames:
-      - "status.localhost"
+hostAliases: []
+## @param lifecycleHooks [object] Override default container hooks
+##
+lifecycleHooks: {}
 ## @param extraVolumes Optionally specify extra list of additional volumes for pods
 ##
 extraVolumes: []
