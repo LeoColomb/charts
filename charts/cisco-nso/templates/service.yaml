@@ -45,3 +45,6 @@ spec:
     {{- end }}
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: cisco-nso
+    {{- if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled }}
+    ha-raft.ncs.cisco.com/state: leader
+    {{- end }}

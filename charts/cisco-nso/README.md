@@ -26,7 +26,7 @@ This Helm chart enforces [best practices for deploying NSO on Kubernetes](https:
 
 - **SecurityContext**: Limits the Linux capabilities that are allowed for the NSO container and ensures NSO runs as a dedicated user. This can help in adhering to the principle of least privilege. (Requires a custom container image with proper user configuration)
   <!-- - **Ingress and Egress Control**: Implements NetworkPolicies to restrict access to NSO instances and managed devices. Limits the communication to trusted IP ranges and namespaces. -->
-  <!-- - **Service Accounts**: Creates dedicated service accounts for NSO pods to minimize permissions and reduce security risks. This ensures that each service account only has the permissions it needs for its tasks. -->
+- **Service Accounts**: Creates dedicated service accounts for NSO pods to minimize permissions and reduce security risks. This ensures that each service account only has the permissions it needs for its tasks.
 
 ### Monitoring & Logging
 
@@ -43,7 +43,7 @@ This Helm chart enforces [best practices for deploying NSO on Kubernetes](https:
 ### High Availability & Resiliency
 
 - **Raft High Availability**: Configures a three-node Raft cluster for high availability. Ensures that each node has a unique pod and network identity, as well as its own PersistentVolume and PersistentVolumeClaim.
-<!-- - **Service Annotations**: Uses annotations to direct requests to the primary NSO instance. Implements sidecar containers to periodically check and update the Raft HA status. This ensures that the primary instance is always up and running. -->
+- **Service Annotations**: Uses annotations to direct requests to the primary NSO instance. Implements sidecar containers to periodically check and update the Raft HA status. This ensures that the primary instance is always up and running.
 
 ### Backup & Disaster Recovery
 

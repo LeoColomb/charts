@@ -266,12 +266,15 @@ spec:
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.haRaft.readinessProbe "context" $) | nindent 12 }}
             exec:
               command:
-                - /bin/sh
-                - -c
-                - >-
-                    echo 'show ha-raft status role' |
-                    /opt/ncs/current/bin/ncs_cli -u $ADMIN_USERNAME |
-                    grep 'leader\|follower'
+                - /bin/bash
+                - -ec
+                - |
+                    /opt/ncs/current/bin/ncs --status > /opt/status/ncs
+                    grep 'state: \(leader\|follower\)' /opt/status/ncs
+                # - >-
+                #     echo 'show ha-raft status role' |
+                #     /opt/ncs/current/bin/ncs_cli -u $ADMIN_USERNAME |
+                #     grep 'leader\|follower'
           {{/* show ha-raft status disabled-reason */}}
           {{- else if .Values.readinessProbe.enabled }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
@@ -293,12 +296,6 @@ spec:
           {{- end }}
           {{- if .Values.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 12 }}
-          # {{- else if and (gt $replicaCount 1) .Values.haRaft.removeMemberOnContainerTermination }}
-          # lifecycle:
-          #   preStop:
-          #     exec:
-          #       command:
-          #         - /opt/bitnami/scripts/etcd/prestop.sh
           {{- end }}
           {{- if .Values.resources }}
           resources: {{- include "common.tplvalues.render" (dict "value" .Values.resources "context" $) | nindent 12 }}
@@ -320,6 +317,8 @@ spec:
               mountPath: {{ .Values.ncs.logPath | quote }}
             - name: user
               mountPath: /root/
+            - name: status
+              mountPath: /opt/status
             - name: secrets
               mountPath: /nso/etc/
             - name: conf
@@ -347,6 +346,47 @@ spec:
             {{- if .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+        {{- if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled }}
+        - name: status-labeler
+          {{/* image: {{ include "nso.statusLabeler.image" . | quote }} */}}
+          image: docker.io/bitnami/kubectl:latest
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              state_regex="^\s*state: (\w+)$"
+              status_regex="^status: (\w+)$*"
+              while true; do
+                if [[ -f "/opt/status/ncs" ]]; then
+                  while read -r line; do
+                    if [[ $line =~ $state_regex ]]; then
+                      kubectl -n {{ .Release.Namespace }} label --overwrite pods "$POD_NAME" "ha-raft.ncs.cisco.com/state=${BASH_REMATCH[1]}"
+                    fi
+                    if [[ $line =~ $status_regex ]]; then
+                      kubectl -n {{ .Release.Namespace }} label --overwrite pods "$POD_NAME" "ncs.cisco.com/status=${BASH_REMATCH[1]}"
+                    fi
+                  done < /opt/status/ncs
+                fi
+                sleep 10;
+              done
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.volumePermissions.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
+          {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: status
+              mountPath: /opt/status
+        {{- end }}
         {{- if .Values.sidecars }}
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
@@ -375,6 +415,8 @@ spec:
           emptyDir:
             sizeLimit: 500Mi
         - name: user
+          emptyDir: {}
+        - name: status
           emptyDir: {}
         - name: conf-d
           configMap:
