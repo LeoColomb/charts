@@ -10,7 +10,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
-  {{- include "common.tplvalues.render" ( dict "value" (.Files.Glob "files/*.{sh,py}").AsConfig "context" $ ) | nindent 2 }}
+  {{- include "common.tplvalues.render" ( dict "value" (.Files.Glob "files/pre-scripts/*.{sh,py}").AsConfig "context" $ ) | nindent 2 }}
   {{- if .Values.customPreNcsStartScripts }}
   {{- include "common.tplvalues.render" ( dict "value" .Values.customPreNcsStartScripts "context" $ ) | nindent 2 }}
   {{- end }}

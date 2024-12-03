@@ -5,7 +5,7 @@ metadata:
   name: {{ printf "%s-ha-raft" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/part-of: cisco-nso
+    app.kubernetes.io/component: cisco-nso
   {{- if or .Values.haRaft.service.annotations .Values.commonAnnotations }}
   annotations:
     {{- if or .Values.haRaft.service.annotations .Values.commonAnnotations }}
@@ -22,6 +22,12 @@ spec:
       targetPort: ha-raft
       protocol: TCP
       name: ha-raft
+    {{- range until 29 }}
+    - port: {{ add 4370 . }}
+      targetPort: {{ printf "ha-raft-%d" . }}
+      protocol: TCP
+      name: {{ printf "ha-raft-%d" . }}
+    {{- end }}
   selector: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/part-of: cisco-nso
+    app.kubernetes.io/component: cisco-nso
 {{- end }}
