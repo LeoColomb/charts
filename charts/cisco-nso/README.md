@@ -33,7 +33,7 @@ This Helm chart enforces [best practices for deploying NSO on Kubernetes](https:
 <!-- - **Observability Exporter**: Exports data in industry-standard formats such as OpenTelemetry. (Requires observability exporter package) -->
 
 - **Container Probes**: Implements probes to monitor the health and readiness of NSO containers. Uses HTTP checks to ensure that the NSO API is operational. Probes can help in ensuring that the application is functioning correctly and can handle traffic.
-<!-- - **Logs Rotation**: Implements volumes and sidecar containers to properly rotate logs. This helps to use any standard log forwarder. -->
+- **Logs Rotation**: Implements volumes and sidecar containers to properly rotate logs. This helps to use any standard log forwarder.
 
 ### Scaling & Performance Optimization
 
@@ -52,7 +52,7 @@ This Helm chart enforces [best practices for deploying NSO on Kubernetes](https:
 
 ### Upgrade & Maintenance
 
-- **Persistent Storage**: Ensure sthat the NSO running directory uses persistent storage to maintain data integrity during upgrades.
+- **Persistent Storage**: Ensures sthat the NSO running directory uses persistent storage to maintain data integrity during upgrades.
 - **Testing**: Tests upgrades on a dummy instance before applying them to production.
 - **Rolling Upgrades**: Performs rolling node upgrades to minimize the downtime and ensure high availability. Ensures the compatibility with Kubernetes API and resource definitions before upgrading.
 

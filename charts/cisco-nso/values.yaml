@@ -765,6 +765,71 @@ service:
   netconfPort: 830
   netconfCallHomePort: 4334
 
+## Network Policies
+## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+##
+networkPolicy:
+  ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+  ##
+  enabled: true
+  ## @param networkPolicy.allowExternal Don't require server label for connections
+  ## The Policy model to apply. When set to false, only pods with the correct
+  ## server label will have network access to the ports server is listening
+  ## on. When true, server will accept connections from any source
+  ## (with the correct destination port).
+  ##
+  allowExternal: true
+  ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+  ##
+  allowExternalEgress: true
+  ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  addExternalClientAccess: true
+  ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+  ## e.g:
+  ## extraIngress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     from:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##       - podSelector:
+  ##           - matchExpressions:
+  ##               - key: role
+  ##                 operator: In
+  ##                 values:
+  ##                   - frontend
+  extraIngress: []
+  ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+  ## e.g:
+  ## extraEgress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     to:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##       - podSelector:
+  ##           - matchExpressions:
+  ##               - key: role
+  ##                 operator: In
+  ##                 values:
+  ##                   - frontend
+  ##
+  extraEgress: []
+  ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+  ## e.g:
+  ## ingressPodMatchLabels:
+  ##   my-client: "true"
+  #
+  ingressPodMatchLabels: {}
+  ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+
 ## Configure the ingress resource that allows you to access the app
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
@@ -874,6 +939,29 @@ pdb:
   ## @param pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
   ##
   maxUnavailable: ""
+
+## Autoscaling configuration
+## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+##
+autoscaling:
+  ## @param autoscaling.vpa.enabled Enable VPA for %%MAIN_CONTAINER_NAME%% pods
+  ## @param autoscaling.vpa.annotations Annotations for VPA resource
+  ## @param autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
+  ## @param autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
+  ## @param autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
+  ##
+  vpa:
+    enabled: false
+    annotations: {}
+    controlledResources: []
+    maxAllowed: {}
+    minAllowed: {}
+    ## @param autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
+    ## Specifies whether recommended updates are applied when a Pod is started and whether recommended updates are applied during the life of a Pod
+    ## Possible values are "Off", "Initial", "Recreate", and "Auto".
+    ##
+    updatePolicy:
+      updateMode: Auto
 
 ## Init containers parameters:
 ## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
