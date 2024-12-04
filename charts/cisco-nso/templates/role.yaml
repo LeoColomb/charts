@@ -18,7 +18,7 @@ rules:
       - get
       - list
       - watch
-  {{- if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled -}}
+  {{- if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled }}
   - apiGroups:
       - ""
     resources:
