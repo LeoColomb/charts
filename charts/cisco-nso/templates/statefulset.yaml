@@ -359,12 +359,16 @@ spec:
               status_regex="^status: (\w+)$*"
               while true; do
                 if [[ -f "/opt/status/ncs" ]]; then
+                  namespace="$(</var/run/secrets/kubernetes.io/serviceaccount/namespace)"
+                  token="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
                   while read -r line; do
                     if [[ $line =~ $state_regex ]]; then
-                      kubectl -n {{ .Release.Namespace }} label --overwrite pods "$POD_NAME" "ha-raft.ncs.cisco.com/state=${BASH_REMATCH[1]}"
+                      kubectl --token "${token}" --namespace "${namespace}" label --overwrite pods "${POD_NAME}" \
+                        "ha-raft.ncs.cisco.com/state=${BASH_REMATCH[1]}"
                     fi
                     if [[ $line =~ $status_regex ]]; then
-                      kubectl -n {{ .Release.Namespace }} label --overwrite pods "$POD_NAME" "ncs.cisco.com/status=${BASH_REMATCH[1]}"
+                      kubectl --token "${token}" --namespace "${namespace}" label --overwrite pods "${POD_NAME}" \
+                        "ncs.cisco.com/status=${BASH_REMATCH[1]}"
                     fi
                   done < /opt/status/ncs
                 fi
