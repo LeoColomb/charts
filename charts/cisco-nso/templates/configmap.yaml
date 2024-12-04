@@ -14,3 +14,61 @@ data:
   99-custom-nso.xml: |-
     {{- include "common.tplvalues.render" ( dict "value" .Values.extraConfig.raw "context" $ ) | nindent 4 }}
   {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-pre-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: cisco-nso
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  {{- include "common.tplvalues.render" ( dict "value" (.Files.Glob "files/pre-scripts/*.{sh,py}").AsConfig "context" $ ) | nindent 2 }}
+  {{- if .Values.customPreNcsStartScripts }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.customPreNcsStartScripts "context" $ ) | nindent 2 }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-post-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: cisco-nso
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  {{- include "common.tplvalues.render" ( dict "value" (.Files.Glob "files/post-scripts/*.{sh,py}").AsConfig "context" $ ) | nindent 2 }}
+  {{- if .Values.customPostNcsStartScripts }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.customPostNcsStartScripts "context" $ ) | nindent 2 }}
+  {{- end }}
+{{- if .Values.logRotate.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-log-rotate" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: cisco-nso
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  logrotate.conf: |-
+    # see "man logrotate" for details
+    include /etc/logrotate.d
+    /var/logs/*.log /var/logs/*.access /var/logs/*.trace {
+      nocreate
+      daily
+      rotate 14
+      missingok
+      notifempty
+      compress
+      copytruncate
+    }
+{{- end }}
