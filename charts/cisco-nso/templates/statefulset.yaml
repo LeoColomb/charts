@@ -210,9 +210,7 @@ spec:
             #       name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
             #       key: ssh-privatekey
             - name: LOGROTATE_ENABLE
-              value: {{ "true" | quote }}
-            - name: CRON_ENABLE
-              value: {{ "true" | quote }}
+              value: {{ not .Values.logRotate.enabled | quote }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
