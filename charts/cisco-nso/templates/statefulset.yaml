@@ -210,9 +210,7 @@ spec:
             #       name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
             #       key: ssh-privatekey
             - name: LOGROTATE_ENABLE
-              value: {{ "true" | quote }}
-            - name: CRON_ENABLE
-              value: {{ "true" | quote }}
+              value: {{ not .Values.logRotate.enabled | quote }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
@@ -334,6 +332,11 @@ spec:
               mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath $name }}
               subPath: {{ $name | quote }}
             {{- end }}
+            {{- if .Values.logRotate.enabled }}
+            - name: custom-post-ncs-start
+              mountPath: {{ printf "%s/post-ncs-start.d/%s" .Values.ncs.configPath "10-cron-logrotate.sh" }}
+              subPath: 10-cron-logrotate.sh
+            {{- end }}
             {{- range $name, $_ := .Values.customPostNcsStartScripts }}
             - name: custom-post-ncs-start
               mountPath: {{ printf "%s/post-ncs-start.d/%s" .Values.ncs.configPath $name }}
@@ -391,6 +394,25 @@ spec:
             - name: status
               mountPath: /opt/status
         {{- end }}
+        {{- if .Values.logRotate.enabled }}
+        - name: log-rotate
+          image: docker.io/imroc/logrotate:latest
+          imagePullPolicy: {{ .Values.logRotate.image.pullPolicy | quote }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.logRotate.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.logRotate.resources "context" $) | nindent 12 }}
+          {{- else if ne .Values.logRotate.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.logRotate.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: logs
+              mountPath: /var/logs
+            - name: log-rotate
+              mountPath: /etc/logrotate.conf
+              subPath: logrotate.conf
+        {{- end }}
         {{- if .Values.sidecars }}
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
@@ -429,11 +451,15 @@ spec:
           configMap:
             name: {{ printf "%s-pre-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0755
-        {{- if .Values.customPostNcsStartScripts }}
         - name: custom-post-ncs-start
           configMap:
             name: {{ printf "%s-post-ncs-start" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0755
+        {{- if .Values.logRotate.enabled }}
+        - name: log-rotate
+          configMap:
+            name: {{ printf "%s-log-rotate" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
+            defaultMode: 0644
         {{- end }}
         {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
         - name: ha-raft-certs
