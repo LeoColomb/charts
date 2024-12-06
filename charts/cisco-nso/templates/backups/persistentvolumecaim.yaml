@@ -10,9 +10,17 @@ metadata:
   {{- end }}
 spec:
   accessModes:
-    - ReadWriteMany
+  {{- range .Values.backups.pvc.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
   resources:
     requests:
       storage: {{ .Values.backups.pvc.size | quote }}
-  storageClassName: {{ .Values.backups.pvc.storageClassName | quote }}
+  {{- if .Values.backups.pvc.selector }}
+  selector: {{- include "common.tplvalues.render" (dict "value" .Values.backups.pvc.selector "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if .Values.backups.pvc.dataSource }}
+  dataSource: {{- include "common.tplvalues.render" (dict "value" .Values.backups.pvc.dataSource "context" $) | nindent 4 }}
+  {{- end }}
+  {{- include "common.storage.class" (dict "persistence" .Values.backups.pvc "global" .Values.global) | nindent 2 }}
 {{- end }}
