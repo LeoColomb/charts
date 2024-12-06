@@ -16,6 +16,7 @@ rules:
     resources:
       - pods
     verbs:
+      - get
       - patch
   {{- end }}
   {{- if .Values.rbac.rules }}
