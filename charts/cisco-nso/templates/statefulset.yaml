@@ -398,7 +398,7 @@ spec:
         {{- end }}
         {{- if .Values.logRotate.enabled }}
         - name: log-rotate
-          image: docker.io/vitess/logrotate:latest
+          image: docker.io/imroc/logrotate:latest
           imagePullPolicy: {{ .Values.logRotate.image.pullPolicy | quote }}
           {{- if .Values.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
@@ -412,7 +412,7 @@ spec:
             - name: logs
               mountPath: /var/logs
             - name: log-rotate
-              mountPath: /vt/logrotate.conf
+              mountPath: /etc/logrotate.conf
               subPath: logrotate.conf
         {{- end }}
         {{- if .Values.sidecars }}
