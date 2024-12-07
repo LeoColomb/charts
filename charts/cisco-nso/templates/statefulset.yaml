@@ -40,7 +40,7 @@ spec:
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
-      serviceAccountName: {{ .Values.serviceAccountName }}
+      serviceAccountName: {{ include "nso.serviceAccountName" . }}
       {{- if .Values.hostAliases }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       {{- end }}
@@ -97,7 +97,7 @@ spec:
             - name: conf
               mountPath: /etc/ncs-setup
         - name: run-volume-permissions
-          image: {{ include "nso.volumePermissions.image" . }}
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.volumePermissions.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.volumePermissions.image.pullPolicy | quote }}
           command:
             - /bin/bash
@@ -115,8 +115,9 @@ spec:
                 "/nso/run/target"
               chown "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}" "/nso/run"
               find "/nso/run" -mindepth 1 -maxdepth 2 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}"
-          securityContext:
-            runAsUser: 0
+          {{- if .Values.volumePermissions.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.volumePermissions.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
           {{- if .Values.volumePermissions.resources }}
           resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
           {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
@@ -136,14 +137,14 @@ spec:
             - /opt/ncs/current/bin/ncs-backup
             - --non-interactive
             - --restore
-            - {{ .Values.restoreFromBackup.backupFilename }}
-          {{- if .Values.containerSecurityContext.enabled }}
-          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+            - {{ .Values.restoreFromBackup.backupFilename | quote }}
+          {{- if .Values.restoreFromBackup.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.restoreFromBackup.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
-          {{- if .Values.volumePermissions.resources }}
-          resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
-          {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
-          resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
+          {{- if .Values.restoreFromBackup.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.restoreFromBackup.resources "context" $) | nindent 12 }}
+          {{- else if ne .Values.restoreFromBackup.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.restoreFromBackup.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: {{ include "nso.run.pvc.name" . }}
@@ -260,27 +261,20 @@ spec:
           {{- end }}
           {{- if .Values.customReadinessProbe }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
-          {{- else if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled }}
-          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.haRaft.readinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
             exec:
               command:
                 - /bin/bash
                 - -ec
                 - |
                     /opt/ncs/current/bin/ncs --status > /opt/status/ncs
+                    {{- if .Values.haRaft.enabled }}
                     grep 'state: \(leader\|follower\)' /opt/status/ncs
-                # - >-
-                #     echo 'show ha-raft status role' |
-                #     /opt/ncs/current/bin/ncs_cli -u $ADMIN_USERNAME |
-                #     grep 'leader\|follower'
-          {{/* show ha-raft status disabled-reason */}}
-          {{- else if .Values.readinessProbe.enabled }}
-          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
-            exec:
-              command:
-                - /opt/ncs/current/bin/ncs_cmd
-                - -c
-                - get_phase
+                    {{- else }}
+                    grep 'status: started' /opt/status/ncs
+                    {{- end }}
+                {{/* show ha-raft status disabled-reason */}}
           {{- end }}
           {{- if .Values.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
@@ -349,11 +343,10 @@ spec:
             {{- if .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
-        {{- if and .Values.haRaft.enabled .Values.haRaft.readinessProbe.enabled }}
+        {{- if and .Values.statusLabeler.enabled }}
         - name: status-labeler
-          {{/* image: {{ include "nso.statusLabeler.image" . | quote }} */}}
-          image: docker.io/bitnami/kubectl:latest
-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.statusLabeler.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.statusLabeler.image.pullPolicy | quote }}
           command:
             - /bin/bash
             - -ec
@@ -362,15 +355,13 @@ spec:
               status_regex="^status: (\w+)$*"
               while true; do
                 if [[ -f "/opt/status/ncs" ]]; then
-                  namespace="$(</var/run/secrets/kubernetes.io/serviceaccount/namespace)"
-                  token="$(</var/run/secrets/kubernetes.io/serviceaccount/token)"
                   while read -r line; do
                     if [[ $line =~ $state_regex ]]; then
-                      kubectl --token "${token}" --namespace "${namespace}" label --overwrite pods "${POD_NAME}" \
+                      kubectl label --overwrite pods "${POD_NAME}" \
                         "ha-raft.ncs.cisco.com/state=${BASH_REMATCH[1]}"
                     fi
                     if [[ $line =~ $status_regex ]]; then
-                      kubectl --token "${token}" --namespace "${namespace}" label --overwrite pods "${POD_NAME}" \
+                      kubectl label --overwrite pods "${POD_NAME}" \
                         "ncs.cisco.com/status=${BASH_REMATCH[1]}"
                     fi
                   done < /opt/status/ncs
@@ -382,13 +373,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-          {{- if .Values.containerSecurityContext.enabled }}
-          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- if .Values.statusLabeler.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.statusLabeler.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
-          {{- if .Values.volumePermissions.resources }}
-          resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
-          {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
-          resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
+          {{- if .Values.statusLabeler.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.statusLabeler.resources "context" $) | nindent 12 }}
+          {{- else if ne .Values.statusLabeler.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.statusLabeler.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: status
@@ -396,9 +387,9 @@ spec:
         {{- end }}
         {{- if .Values.logRotate.enabled }}
         - name: log-rotate
-          image: docker.io/imroc/logrotate:latest
+          image: {{ include "common.images.image" (dict "imageRoot" .Values.logRotate.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.logRotate.image.pullPolicy | quote }}
-          {{- if .Values.containerSecurityContext.enabled }}
+          {{- if .Values.logRotate.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           {{- if .Values.logRotate.resources }}
@@ -434,7 +425,7 @@ spec:
         {{- if .Values.packages.enabled }}
         - name: packages
           image:
-            reference: {{ include "nso.packages.image" . }}
+            reference: {{ include "common.images.image" (dict "imageRoot" .Values.packages.image "global" .Values.global) }}
             pullPolicy: {{ .Values.packages.image.pullPolicy | quote }}
         {{- end }}
         - name: logs

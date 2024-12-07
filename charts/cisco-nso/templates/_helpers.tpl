@@ -13,20 +13,6 @@ Return the proper image name
 {{- end -}}
 
 {{/*
-Return the proper image name (for the packages artifact image)
-*/}}
-{{- define "nso.packages.image" -}}
-{{- include "common.images.image" (dict "imageRoot" .Values.packages.image "global" .Values.global) }}
-{{- end -}}
-
-{{/*
-Return the proper image name (for the init container volume-permissions image)
-*/}}
-{{- define "nso.volumePermissions.image" -}}
-{{- include "common.images.image" (dict "imageRoot" .Values.volumePermissions.image "global" .Values.global) }}
-{{- end -}}
-
-{{/*
 Return the proper image name (for the backups cronjob image)
 */}}
 {{- define "nso.backupsCronJob.image" -}}
