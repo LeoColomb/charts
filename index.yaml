@@ -19,6 +19,52 @@ entries:
         url: https://leocolomb.github.io/charts/gpg.pub
     apiVersion: v2
     appVersion: 6.3.4
+    created: "2024-12-07T00:45:33.460102941Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: ^2.27.2
+    description: Cisco Network Services Orchestrator (NSO)
+    digest: b02fca1fc21d891738d5ed2d31e6ba512a961d09cfcc5396465223d51c16a6e4
+    home: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-services-orchestrator/index.html
+    icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
+    keywords:
+    - network
+    - cisco
+    - nso
+    - orchestrator
+    kubeVersion: ^1.23.0-0
+    maintainers:
+    - name: LeoColomb
+      url: https://github.com/LeoColomb
+    name: cisco-nso
+    sources:
+    - https://github.com/LeoColomb/charts
+    - https://developer.cisco.com/docs/nso/
+    type: application
+    urls:
+    - https://github.com/LeoColomb/charts/releases/download/cisco-nso-5.1.0/cisco-nso-5.1.0.tgz
+    version: 5.1.0
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: changed
+          description: New release
+          links:
+            - name: Changelog on GitHub Releases
+              url: https://github.com/LeoColomb/charts/releases?q=cisco-nso-
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Upstream Documentation
+          url: https://developer.cisco.com/docs/nso/
+        - name: Deploying Cisco NSO on Kubernetes
+          url: https://developer.cisco.com/docs/nso/deploying-cisco-nso-on-kubernetes/
+      artifacthub.io/signKey: |
+        fingerprint: 7D422B98DC0F24610C5807CBB9FDEEE84C92D2AA
+        url: https://leocolomb.github.io/charts/gpg.pub
+    apiVersion: v2
+    appVersion: 6.3.4
     created: "2024-12-06T17:17:00.711170805Z"
     dependencies:
     - name: common
@@ -631,4 +677,4 @@ entries:
     urls:
     - https://github.com/LeoColomb/charts/releases/download/cisco-nso-1.0.0/cisco-nso-1.0.0.tgz
     version: 1.0.0
-generated: "2024-12-06T17:17:00.711278016Z"
+generated: "2024-12-07T00:45:33.460214801Z"
