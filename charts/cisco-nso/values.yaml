@@ -821,7 +821,7 @@ service:
 networkPolicy:
   ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
   ##
-  enabled: true
+  enabled: false
   ## @param networkPolicy.allowExternal Don't require server label for connections
   ## The Policy model to apply. When set to false, only pods with the correct
   ## server label will have network access to the ports server is listening
