@@ -5,7 +5,7 @@ metadata:
   name: {{ printf "%s-ha-raft" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: cisco-nso
+    app.kubernetes.io/component: ha-raft
   {{- if or .Values.haRaft.service.annotations .Values.commonAnnotations }}
   annotations:
     {{- if or .Values.haRaft.service.annotations .Values.commonAnnotations }}

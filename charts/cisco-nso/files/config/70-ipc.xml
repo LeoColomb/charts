@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ncs-config xmlns="http://tail-f.com/yang/tailf-ncs-config">
+  <ncs-ipc-address>
+    <ip>0.0.0.0</ip>
+    <port>{{ .Values.containerPorts.ipc }}</port>
+  </ncs-ipc-address>
+  <ncs-ipc-access-check>
+    <enabled>{{ .Values.auth.ipc.enabled }}</enabled>
+    <filename>${NCS_CONFIG_DIR}/ipc_access</filename>
+  </ncs-ipc-access-check>
+</ncs-config>

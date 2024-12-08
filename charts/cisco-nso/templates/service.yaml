@@ -24,6 +24,10 @@ spec:
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}
   {{- end }}
   ports:
+    - port: {{ .Values.service.ipcPort }}
+      targetPort: ipc
+      protocol: TCP
+      name: ipc
     - port: {{ .Values.service.webuiPort }}
       targetPort: webui
       protocol: TCP
@@ -45,6 +49,6 @@ spec:
     {{- end }}
   selector: {{- include "common.labels.matchLabels" . | nindent 4 }}
     app.kubernetes.io/component: cisco-nso
-    {{- if and .Values.haRaft.enabled .Values.statusLabeler.enabled }}
-    ha-raft.ncs.cisco.com/state: leader
+    {{- if .Values.statusLabeler.enabled }}
+    ncs.cisco.com/phase: "2"
     {{- end }}

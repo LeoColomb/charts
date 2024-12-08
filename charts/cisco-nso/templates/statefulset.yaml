@@ -36,7 +36,7 @@ spec:
       {{- end }}
     spec:
       {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.volumePermissions.image .Values.restoreFromBackup.image) "context" $) | nindent 6 }}
-      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
@@ -198,18 +198,24 @@ spec:
             - name: ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
+                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.basic.existingSecret "defaultNameSuffix" "admin-basic-auth" "context" $) }}
                   key: username
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
+                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.basic.existingSecret "defaultNameSuffix" "admin-basic-auth" "context" $) }}
                   key: password
-            # - name: ADMIN_SSHKEY
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.existingSecret "defaultNameSuffix" "admin" "context" $) }}
-            #       key: ssh-privatekey
+            {{- if .Values.auth.ssh.enabled }}
+            - name: ADMIN_SSHKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.ssh.existingSecret "defaultNameSuffix" "admin-ssh-auth" "context" $) }}
+                  key: ssh-privatekey
+            {{- end }}
+            {{- if .Values.auth.ipc.enabled }}
+            - name: NCS_IPC_ACCESS_FILE
+              value: {{ printf "%s/ipc_access" .Values.ncs.configPath }}
+            {{- end }}
             - name: LOGROTATE_ENABLE
               value: {{ not .Values.logRotate.enabled | quote }}
             {{- if .Values.extraEnvVars }}
@@ -227,6 +233,9 @@ spec:
             {{- end }}
           {{- end }}
           ports:
+            - name: ipc
+              containerPort: {{ .Values.containerPorts.ipc }}
+              protocol: TCP
             - name: webui
               containerPort: {{ .Values.containerPorts.webui }}
               protocol: TCP
@@ -255,26 +264,19 @@ spec:
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}
           {{- else if .Values.livenessProbe.enabled }}
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livenessProbe "enabled") "context" $) | nindent 12 }}
-            httpGet:
-              path: /login.html
-              port: webui
+            exec:
+              command:
+                - /opt/ncs/current/bin/ncs_cmd
+                - -c
+                - "wait-start 2"
           {{- end }}
           {{- if .Values.customReadinessProbe }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
           {{- else if .Values.readinessProbe.enabled }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
-            exec:
-              command:
-                - /bin/bash
-                - -ec
-                - |
-                    /opt/ncs/current/bin/ncs --status > /opt/status/ncs
-                    {{- if .Values.haRaft.enabled }}
-                    grep 'state: \(leader\|follower\)' /opt/status/ncs
-                    {{- else }}
-                    grep 'status: started' /opt/status/ncs
-                    {{- end }}
-                {{/* show ha-raft status disabled-reason */}}
+            httpGet:
+              path: /login.html
+              port: webui
           {{- end }}
           {{- if .Values.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
@@ -284,7 +286,7 @@ spec:
               command:
                 - /opt/ncs/current/bin/ncs_cmd
                 - -c
-                - get_phase
+                - "get_phase"
           {{- end }}
           {{- if .Values.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 12 }}
@@ -309,8 +311,8 @@ spec:
               mountPath: {{ .Values.ncs.logPath | quote }}
             - name: user
               mountPath: /root/
-            - name: status
-              mountPath: /opt/status
+            # - name: user
+            #   mountPath: {{ printf "/home/%s" .Values.auth.basic.username | quote }}
             - name: secrets
               mountPath: /nso/etc/
             - name: conf
@@ -336,6 +338,11 @@ spec:
               mountPath: {{ printf "%s/post-ncs-start.d/%s" .Values.ncs.configPath $name }}
               subPath: {{ $name | quote }}
             {{- end }}
+            {{- if .Values.auth.ipc.enabled }}
+            - name: ipc-token
+              mountPath: {{ printf "%s/ipc_access" .Values.ncs.configPath }}
+              subPath: token
+            {{- end }}
             {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
             - name: ha-raft-certs
               mountPath: {{ printf "%s/dist/ssl/cert" .Values.ncs.configPath }}
@@ -343,30 +350,82 @@ spec:
             {{- if .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
-        {{- if and .Values.statusLabeler.enabled }}
-        - name: status-labeler
+        {{- if .Values.statusLabeler.enabled }}
+        - name: status-labeler-status
+          image: {{ include "nso.cli.image" . | quote }}
+          imagePullPolicy: {{ .Values.cli.image.pullPolicy | quote }}
+          command:
+            - /bin/bash
+            - -ec
+          args:
+            - |
+              while true; do
+                (
+                  /opt/ncs/current/bin/ncs_cmd -o -U \
+                    -c 'get_phase' \
+                    | cut -d' ' -f2 \
+                  || echo "unknown" \
+                ) > /opt/status/phase
+                (
+                  /opt/ncs/current/bin/ncs_cmd -o -U \
+                    -c 'get_running_status' \
+                  || echo "unknown" \
+                ) > /opt/status/status
+                (
+                  /opt/ncs/current/bin/ncs_cmd -o -U \
+                    -c 'mrtrans; mget "/ha-raft/status/role"' \
+                  || echo "unknown" \
+                ) > /opt/status/ha-role
+                sleep 5;
+              done
+          env:
+            - name: NCS_IPC_ADDR
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NCS_IPC_PORT
+              value: {{ .Values.containerPorts.ipc | quote }}
+            {{- if .Values.auth.ipc.enabled }}
+            - name: NCS_IPC_ACCESS_FILE
+              value: /var/run/secrets/ncs.cisco.com/ipc/token
+            {{- end }}
+          {{- if .Values.cli.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.cli.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.cli.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.cli.resources "context" $) | nindent 12 }}
+          {{- else if ne .Values.cli.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.cli.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: status
+              mountPath: /opt/status
+            {{- if .Values.auth.ipc.enabled }}
+            - name: ipc-token
+              mountPath: /var/run/secrets/ncs.cisco.com/ipc
+            {{- end }}
+        - name: status-labeler-labeler
           image: {{ include "common.images.image" (dict "imageRoot" .Values.statusLabeler.image "global" .Values.global) }}
           imagePullPolicy: {{ .Values.statusLabeler.image.pullPolicy | quote }}
           command:
             - /bin/bash
             - -ec
+          args:
             - |
-              state_regex="^\s*state: (\w+)$"
-              status_regex="^status: (\w+)$*"
               while true; do
-                if [[ -f "/opt/status/ncs" ]]; then
-                  while read -r line; do
-                    if [[ $line =~ $state_regex ]]; then
-                      kubectl label --overwrite pods "${POD_NAME}" \
-                        "ha-raft.ncs.cisco.com/state=${BASH_REMATCH[1]}"
-                    fi
-                    if [[ $line =~ $status_regex ]]; then
-                      kubectl label --overwrite pods "${POD_NAME}" \
-                        "ncs.cisco.com/status=${BASH_REMATCH[1]}"
-                    fi
-                  done < /opt/status/ncs
+                if [[ -f "/opt/status/phase" ]]; then
+                  kubectl label --overwrite pods "${POD_NAME}" \
+                    "ncs.cisco.com/phase=$(</opt/status/phase)"
                 fi
-                sleep 10;
+                if [[ -f "/opt/status/status" ]]; then
+                  kubectl label --overwrite pods "${POD_NAME}" \
+                    "ncs.cisco.com/status=$(</opt/status/status)"
+                fi
+                if [[ -f "/opt/status/ha-role" ]]; then
+                  kubectl label --overwrite pods "${POD_NAME}" \
+                    "ncs.cisco.com/ha-role=$(</opt/status/ha-role)"
+                fi
+                sleep 5;
               done
           env:
             - name: POD_NAME
@@ -451,6 +510,12 @@ spec:
           configMap:
             name: {{ printf "%s-log-rotate" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0644
+        {{- end }}
+        {{- if .Values.auth.ipc.enabled }}
+        - name: ipc-token
+          secret:
+            secretName: {{ include "common.secrets.name" (dict "existingSecret" .Values.haRaft.existingSecret "defaultNameSuffix" "ipc-token" "context" $) }}
+            defaultMode: 0244
         {{- end }}
         {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
         - name: ha-raft-certs
