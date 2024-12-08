@@ -13,6 +13,17 @@ Return the proper image name
 {{- end -}}
 
 {{/*
+Return the proper image name (for the CLI containers image)
+*/}}
+{{- define "nso.cli.image" -}}
+{{- if .Values.cli.image.repository -}}
+  {{- include "common.images.image" (dict "imageRoot" .Values.cli.image "global" .Values.global) }}
+{{- else -}}
+  {{- include "nso.image" . }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the proper image name (for the backups cronjob image)
 */}}
 {{- define "nso.backupsCronJob.image" -}}
@@ -24,7 +35,7 @@ Return the proper image name (for the backups cronjob image)
 {{- end -}}
 
 {{/*
-Return the proper image name (for the backups cronjob image)
+Return the proper image name (for the backups restore image)
 */}}
 {{- define "nso.restoreBackup.image" -}}
 {{- if .Values.restoreFromBackup.image.repository -}}
