@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ncs-config xmlns="http://tail-f.com/yang/tailf-ncs-config">
-  <webui>
+  <restconf>
     <enabled>true</enabled>
     <transport>
       <tcp>
         <enabled>{{ not .Values.tls.enabled }}</enabled>
-        <port>{{ .Values.containerPorts.webui }}</port>
+        <port>{{ .Values.containerPorts.restconf }}</port>
       </tcp>
       <ssl>
         <enabled>{{ .Values.tls.enabled }}</enabled>
-        <port>{{ .Values.containerPorts.webui }}</port>
+        <port>{{ .Values.containerPorts.restconf }}</port>
         <key-file>${NCS_CONFIG_DIR}/ssl/cert/tls.key</key-file>
         <cert-file>${NCS_CONFIG_DIR}/ssl/cert/tls.crt</cert-file>
         <ca-cert-file>${NCS_CONFIG_DIR}/ssl/cert/ca.crt</ca-cert-file>
       </ssl>
     </transport>
-  </webui>
+  </restconf>
 </ncs-config>
