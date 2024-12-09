@@ -62,7 +62,7 @@ data:
   logrotate.conf: |-
     # see "man logrotate" for details
     include /etc/logrotate.d
-    /var/logs/*.log /var/logs/*.access /var/logs/*.trace {
+    /var/log/*.log /var/log/*.access /var/log/*.trace {
       nocreate
       daily
       rotate 14

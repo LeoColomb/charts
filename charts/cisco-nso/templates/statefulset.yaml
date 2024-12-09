@@ -303,7 +303,7 @@ spec:
             - name: backups
               mountPath: {{ default (printf "%s/backups" .Values.ncs.runPath) .Values.backups.customMountPath | quote }}
             {{- end }}
-            {{- if .Values.packages.enabled }}
+            {{- if .Values.packages.image.repository }}
             - name: packages
               mountPath: {{ default (printf "%s/packages" .Values.ncs.runPath) .Values.packages.customMountPath | quote }}
             {{- end }}
@@ -342,6 +342,10 @@ spec:
             - name: ipc-token
               mountPath: {{ printf "%s/ipc_access" .Values.ncs.configPath }}
               subPath: token
+            {{- end }}
+            {{- if .Values.tls.enabled }}
+            - name: certs
+              mountPath: {{ printf "%s/ssl/cert" "/nso/etc" }}
             {{- end }}
             {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
             - name: ha-raft-certs
@@ -458,7 +462,7 @@ spec:
           {{- end }}
           volumeMounts:
             - name: logs
-              mountPath: /var/logs
+              mountPath: /var/log
             - name: log-rotate
               mountPath: /etc/logrotate.conf
               subPath: logrotate.conf
@@ -481,7 +485,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ printf "%s" (tpl .Values.restoreFromBackup.existingClaim $) | trunc 63 | trimSuffix "-" }}
         {{- end }}
-        {{- if .Values.packages.enabled }}
+        {{- if .Values.packages.image.repository }}
         - name: packages
           image:
             reference: {{ include "common.images.image" (dict "imageRoot" .Values.packages.image "global" .Values.global) }}
@@ -516,6 +520,12 @@ spec:
           secret:
             secretName: {{ include "common.secrets.name" (dict "existingSecret" .Values.haRaft.existingSecret "defaultNameSuffix" "ipc-token" "context" $) }}
             defaultMode: 0244
+        {{- end }}
+        {{- if .Values.tls.enabled }}
+        - name: certs
+          secret:
+            secretName: {{ include "common.secrets.name" (dict "existingSecret" .Values.tls.existingSecret "defaultNameSuffix" "tls" "context" $) }}
+            defaultMode: 0256
         {{- end }}
         {{- if and .Values.haRaft.enabled .Values.haRaft.tls }}
         - name: ha-raft-certs
