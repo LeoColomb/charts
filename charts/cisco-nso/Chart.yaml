@@ -1,5 +1,5 @@
 apiVersion: v2
-version: 7.1.1
+version: 7.1.2
 name: cisco-nso
 description: Cisco Network Services Orchestrator (NSO)
 # renovate: image=ghcr.io/cisco-nso-prod
@@ -26,6 +26,13 @@ dependencies:
     tags:
       - bitnami-common
 annotations:
+  artifacthub.io/images: |
+    - name: volume-permissions
+      image: docker.io/bitnami/os-shell:12-debian-12-r33
+    - name: status-labeler
+      image: docker.io/bitnami/kubectl:1.31.3-debian-12-r1
+    - name: log-rotate
+      image: docker.io/imroc/logrotate:3.21.0
   artifacthub.io/license: Apache-2.0
   artifacthub.io/links: |
     - name: Upstream Documentation
