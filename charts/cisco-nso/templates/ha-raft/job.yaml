@@ -1,4 +1,4 @@
-{{- if .Values.haRaft.job.enabled -}}
+{{- if and .Values.haRaft.enabled .Values.haRaft.job.enabled -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -11,9 +11,10 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
-  parallelism: 1
-  completions: 1
-  backoffLimit: 100
+  parallelism: {{ .Values.haRaft.job.parallelism }}
+  completions: {{ .Values.haRaft.job.completions }}
+  backoffLimit: {{ .Values.haRaft.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.haRaft.job.ttlSecondsAfterFinished }}
   template:
     metadata:
       {{- if .Values.haRaft.job.podAnnotations }}

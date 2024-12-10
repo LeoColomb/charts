@@ -309,12 +309,18 @@ backups:
     ## See https://en.wikipedia.org/wiki/Cron
     ##
     schedule: "*/30 * * * *"
-    ## @param backups.cronjob.historyLimit Number of successful finished jobs to retain
-    ##
-    historyLimit: 1
-    ## @param backups.cronjob.backupHistoryLimit Number of etcd backups to retain, tagged by date
-    ##
-    backupHistoryLimit: 1
+    ## @param backup.cronjob.suspend
+    suspend: false
+    ## @param backup.cronjob.failedJobsHistoryLimit Set the cronjob parameter failedJobsHistoryLimit
+    failedJobsHistoryLimit: 1
+    ## @param backup.cronjob.concurrencyPolicy Set the cronjob parameter concurrencyPolicy
+    concurrencyPolicy: Allow
+    ## @param backup.cronjob.successfulJobsHistoryLimit Set the cronjob parameter successfulJobsHistoryLimit
+    successfulJobsHistoryLimit: 3
+    ## @param backups.cronjob.startingDeadlineSeconds Set the cronjob parameter startingDeadlineSeconds
+    startingDeadlineSeconds: ""
+    ## @param backups.cronjob.ttlSecondsAfterFinished Set the cronjob parameter ttlSecondsAfterFinished
+    ttlSecondsAfterFinished: ""
     ## @param backups.cronjob.restartPolicy Set the cronjob parameter restartPolicy
     ##
     restartPolicy: OnFailure
@@ -563,6 +569,19 @@ haRaft:
     ## @param haRaft.job.restartPolicy Set the cronjob parameter restartPolicy
     ##
     restartPolicy: OnFailure
+    ## @param haRaft.job.backoffLimit Number of retries before considering a Job as failed
+    ##
+    backoffLimit: 1
+    ## @param haRaft.job.parallelism
+    ##
+    parallelism: 1
+    ## @param haRaft.job.completions
+    ##
+    completions: 1
+    ## @param haRaft.job.ttlSecondsAfterFinished Enables Cleanup for Finished Jobs
+    ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/
+    ##
+    ttlSecondsAfterFinished: ""
     ## @param haRaft.job.annotations [object] Additional custom annotations for the cronjob
     ##
     annotations: {}

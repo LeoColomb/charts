@@ -16,10 +16,16 @@ spec:
   schedule: {{ .Values.backups.cronjob.schedule | quote }}
   successfulJobsHistoryLimit: {{ .Values.backups.cronjob.successfulJobsHistoryLimit }}
   suspend: {{ .Values.backups.cronjob.suspend }}
+  {{- if .Values.backup.cronjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ .Values.backup.cronjob.startingDeadlineSeconds }}
+  {{- end }}
   jobTemplate:
     metadata:
       labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
     spec:
+      {{- if .Values.backup.cronjob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ .Values.backup.cronjob.ttlSecondsAfterFinished }}
+      {{- end }}
       template:
         metadata:
           {{- if .Values.backups.cronjob.podAnnotations }}
