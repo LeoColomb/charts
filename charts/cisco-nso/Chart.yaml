@@ -1,19 +1,19 @@
 apiVersion: v2
-version: 7.1.5
+version: 7.1.6
 name: cisco-nso
 description: Cisco Network Services Orchestrator (NSO)
 # renovate: image=ghcr.io/cisco-nso-prod
-appVersion: "6.3.4"
+appVersion: "6.4"
 type: application
 keywords:
   - network
   - cisco
   - nso
   - orchestrator
-home: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-services-orchestrator/index.html
+home: https://www.cisco.com/go/nso
 icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
 sources:
-  - https://github.com/LeoColomb/charts
+  - https://github.com/LeoColomb/charts/tree/main/charts/cisco-nso
   - https://developer.cisco.com/docs/nso/
 maintainers:
   - name: LeoColomb
