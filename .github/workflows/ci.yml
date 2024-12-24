@@ -44,6 +44,21 @@ jobs:
       action-matrix: '["lint", "install", "install --upgrade"]'
     secrets: inherit
 
+  results:
+    name: Status results
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - test
+    steps:
+      - run: exit 1
+        if: >-
+          ${{
+               contains(needs.*.result, 'failure')
+            || contains(needs.*.result, 'cancelled')
+          }}
+
   release:
     name: Release
     if: github.ref == 'refs/heads/main'
