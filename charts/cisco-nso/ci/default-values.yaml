@@ -1,4 +1,5 @@
 image:
+  tag: "6.3.4"
   pullSecrets:
     - ci-regcred
 ciPullSecrets:
