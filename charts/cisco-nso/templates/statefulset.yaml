@@ -33,6 +33,8 @@ spec:
         {{- if .Values.metrics.service.annotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.metrics.service.annotations "context" $) | nindent 8 }}
         {{- end }}
+        checksum/configuration: {{ include "common.utils.checksumTemplate" (dict "path" "/configmap.yaml" "context" $) }}
+        checksum/secret: {{ include "common.utils.checksumTemplate" (dict "path" "/secret.yaml" "context" $) }}
       {{- end }}
     spec:
       {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.volumePermissions.image .Values.restoreFromBackup.image) "context" $) | nindent 6 }}
