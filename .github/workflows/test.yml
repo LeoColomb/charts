@@ -44,4 +44,4 @@ jobs:
       - name: Run chart-testing (${{ matrix.action }})
         run: ct ${{ matrix.action }} --config config.yaml --debug ${{ contains(matrix.action, 'install') && '--helm-extra-set-args="$CT_HELM_EXTRA_SET_ARGS"' || '' }}
         env:
-          CT_HELM_EXTRA_SET_ARGS: --set=image.repository=${{ secrets.NSO_IMAGE }} --set=ciPullSecrets=${{ secrets.GHCR_TOKEN }}
+          CT_HELM_EXTRA_SET_ARGS: --set=image.repository=${{ secrets.NSO_IMAGE }} --set=ciPullSecrets.password=${{ secrets.GHCR_TOKEN }} --set=ciPullSecrets.username=${{ vars.GHCR_USERNAME }}
