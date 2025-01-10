@@ -16,7 +16,7 @@ extraDeploy:
         {{- end }}
       type: kubernetes.io/dockerconfigjson
       data:
-        .dockerconfigjson: {{ .Values.ciPullSecrets }}
+        .dockerconfigjson: {{ printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" "ghcr.io" .Values.ciPullSecrets.username .Values.ciPullSecrets.password "" (printf "%s:%s" .Values.ciPullSecrets.username .Values.ciPullSecrets.password | b64enc) | b64enc }}
 
 # backups:
 #   enabled: true
