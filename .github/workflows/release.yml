@@ -67,5 +67,5 @@ jobs:
               break
             fi
             helm push "${pkg}" "oci://ghcr.io/${GITHUB_REPOSITORY@L}"
-            helm sigstore upload "${pkg}"
+            helm sigstore upload --keyring="$CR_KEYRING" "${pkg}"
           done
