@@ -10,6 +10,59 @@ entries:
               url: https://github.com/LeoColomb/charts/releases?q=cisco-nso-
       artifacthub.io/images: |
         - name: volume-permissions
+          image: docker.io/bitnami/os-shell:12-debian-12-r43
+        - name: status-labeler
+          image: docker.io/bitnami/kubectl:1.32.3-debian-12-r4
+        - name: log-rotate
+          image: docker.io/imroc/logrotate:3.21.0
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Upstream Documentation
+          url: https://developer.cisco.com/docs/nso/
+        - name: Deploying Cisco NSO on Kubernetes
+          url: https://developer.cisco.com/docs/nso/deploying-cisco-nso-on-kubernetes/
+      artifacthub.io/signKey: |
+        fingerprint: 7D422B98DC0F24610C5807CBB9FDEEE84C92D2AA
+        url: https://leocolomb.github.io/charts/gpg.pub
+    apiVersion: v2
+    appVersion: "6.4"
+    created: "2025-04-15T22:50:31.446469619Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: ^2.30.0
+    description: Cisco Network Services Orchestrator (NSO)
+    digest: 8233ef3c03bcc93d1652446f4426f7f376830fc12c0792ac257846e555d3051b
+    home: https://www.cisco.com/go/nso
+    icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
+    keywords:
+    - network
+    - cisco
+    - nso
+    - orchestrator
+    kubeVersion: ^1.23.0-0
+    maintainers:
+    - name: LeoColomb
+      url: https://github.com/LeoColomb
+    name: cisco-nso
+    sources:
+    - https://github.com/LeoColomb/charts/tree/main/charts/cisco-nso
+    - https://developer.cisco.com/docs/nso/
+    type: application
+    urls:
+    - https://github.com/LeoColomb/charts/releases/download/cisco-nso-7.1.37/cisco-nso-7.1.37.tgz
+    version: 7.1.37
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: changed
+          description: New release
+          links:
+            - name: Changelog on GitHub Releases
+              url: https://github.com/LeoColomb/charts/releases?q=cisco-nso-
+      artifacthub.io/images: |
+        - name: volume-permissions
           image: docker.io/bitnami/os-shell:12-debian-12-r42
         - name: status-labeler
           image: docker.io/bitnami/kubectl:1.32.3-debian-12-r4
@@ -2716,4 +2769,4 @@ entries:
     urls:
     - https://github.com/LeoColomb/charts/releases/download/cisco-nso-1.0.0/cisco-nso-1.0.0.tgz
     version: 1.0.0
-generated: "2025-04-09T15:20:20.608799501Z"
+generated: "2025-04-15T22:50:31.446695985Z"
