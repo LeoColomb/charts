@@ -1,5 +1,5 @@
 apiVersion: v2
-version: 7.1.46
+version: 7.1.47
 name: cisco-nso
 description: Cisco Network Services Orchestrator (NSO)
 # renovate: image=ghcr.io/cisco-nso-prod
@@ -14,7 +14,7 @@ home: https://www.cisco.com/go/nso
 icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
 sources:
   - https://github.com/LeoColomb/charts/tree/main/charts/cisco-nso
-  - https://developer.cisco.com/docs/nso/
+  - https://nso-docs.cisco.com/
 maintainers:
   - name: LeoColomb
     url: https://github.com/LeoColomb
@@ -36,9 +36,9 @@ annotations:
   artifacthub.io/license: Apache-2.0
   artifacthub.io/links: |
     - name: Upstream Documentation
-      url: https://developer.cisco.com/docs/nso/
+      url: https://nso-docs.cisco.com/
     - name: Deploying Cisco NSO on Kubernetes
-      url: https://developer.cisco.com/docs/nso/deploying-cisco-nso-on-kubernetes/
+      url: https://nso-docs.cisco.com/resources/best-practices/nso-on-kubernetes
   artifacthub.io/signKey: |
     fingerprint: 7D422B98DC0F24610C5807CBB9FDEEE84C92D2AA
     url: https://leocolomb.github.io/charts/gpg.pub
