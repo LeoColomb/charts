@@ -185,7 +185,7 @@ packages:
 ## @section NSO Configuration parameters
 
 ## NSO settings based on environment variables
-## ref: https://developer.cisco.com/docs/nso/api/ncs-man-pages-volume-5/#ncs-conf
+## ref: https://nso-docs.cisco.com/guides/resources/index/section5#ncs.conf
 
 ## Authentication parameters
 ##
@@ -527,7 +527,7 @@ restoreFromBackup:
   resources: {}
 
 ## NSO HA Raft parameters
-## ref: https://cisco-tailf.gitbook.io/nso-docs/administration/management/high-availability
+## ref: https://nso-docs.cisco.com/guides/administration/management/high-availability
 ##
 haRaft:
   enabled: false
@@ -683,7 +683,7 @@ persistentVolumeClaimRetentionPolicy:
   ##
   whenDeleted: Retain
 ## @param customPreNcsStartScripts Custom pre-ncs-start.d user scripts
-## ref: https://developer.cisco.com/docs/nso/guides/#!containerized-nso/administrative-information
+## ref: https://nso-docs.cisco.com/guides/administration/installation-and-deployment/containerized-nso#d5e8475
 ## NOTE: supported formats are `.sh`
 ## NOTE: scripts are exclusively executed during the 1st boot of the container
 ## e.g:
@@ -694,7 +694,7 @@ persistentVolumeClaimRetentionPolicy:
 ##
 customPreNcsStartScripts: {}
 ## @param customPostNcsStartScripts Custom post-ncs-start.d user scripts
-## ref: https://developer.cisco.com/docs/nso/guides/#!containerized-nso/administrative-information
+## ref: https://nso-docs.cisco.com/guides/administration/installation-and-deployment/containerized-nso#d5e8475
 ## NOTE: supported formats are `.sh`
 ## NOTE: scripts are exclusively executed during the 1st boot of the container
 ## e.g:

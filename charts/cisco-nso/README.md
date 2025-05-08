@@ -8,7 +8,7 @@ This chart installs [Cisco Network Services Orchestrator (NSO)](https://www.cisc
 on a [Kubernetes](https://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 Deploying Cisco NSO on Kubernetes offers numerous advantages, including consistent deployments, self-healing capabilities, and better version control.  
-This Helm chart enforces [best practices for deploying NSO on Kubernetes](https://developer.cisco.com/docs/nso/deploying-cisco-nso-on-kubernetes/) to ensure optimal performance, security, and maintainability.
+This Helm chart enforces [best practices for deploying NSO on Kubernetes](https://nso-docs.cisco.com/resources/best-practices/nso-on-kubernetes) to ensure optimal performance, security, and maintainability.
 
 ## Features
 
