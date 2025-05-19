@@ -530,7 +530,7 @@ restoreFromBackup:
 ## ref: https://nso-docs.cisco.com/guides/administration/management/high-availability
 ##
 haRaft:
-  enabled: true
+  enabled: false
   clusterName: ""
   tls: true
   selfSigned: true
@@ -727,7 +727,7 @@ haRaft:
 ## @param replicaCount Number of replicas to deploy
 ## NOTE: ReadWriteMany PVC(s) are required if replicaCount > 1
 ##
-replicaCount: 4
+replicaCount: 1
 ## @param podManagementPolicy Pod management policy for the NSO statefulset
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
 ##
