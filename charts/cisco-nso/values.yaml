@@ -530,7 +530,7 @@ restoreFromBackup:
 ## ref: https://nso-docs.cisco.com/guides/administration/management/high-availability
 ##
 haRaft:
-  enabled: false
+  enabled: true
   clusterName: ""
   tls: true
   selfSigned: true
@@ -615,12 +615,17 @@ haRaft:
     ##
     args:
       - |
+        {{- $nsoHaRaftServiceName := (printf "%s-%s" (include "common.names.fullname" $) "ha-raft" | trunc 63 | trimSuffix "-") }}
         /opt/ncs/current/bin/ncs_cli \
         -C --stop-on-error \
         --user "$ADMIN_USERNAME" \
         <<EOF
         ha-raft read-only mode false
-        ha-raft create-cluster
+        ha-raft create-cluster member [
+          {{- range $e, $i := until (int .Values.replicaCount) -}}
+          {{ printf " %s-%d.%s.%s.svc.%s " (include "common.names.fullname" $) $i $nsoHaRaftServiceName (include "common.names.namespace" $) $.Values.clusterDomain }}
+          {{- end -}}
+        ]
         exit
         EOF
     ## Init containers parameters:
@@ -722,7 +727,7 @@ haRaft:
 ## @param replicaCount Number of replicas to deploy
 ## NOTE: ReadWriteMany PVC(s) are required if replicaCount > 1
 ##
-replicaCount: 1
+replicaCount: 4
 ## @param podManagementPolicy Pod management policy for the NSO statefulset
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
 ##
