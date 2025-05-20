@@ -16,7 +16,7 @@ metadata:
 spec:
   type: ClusterIP
   publishNotReadyAddresses: true
-  clusterIP: None
+  # clusterIP: None
   ports:
     - port: {{ .Values.haRaft.service.port }}
       targetPort: ha-raft
