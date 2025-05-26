@@ -52,6 +52,3 @@ spec:
     {{- if .Values.statusLabeler.enabled }}
     ncs.cisco.com/phase: "2"
     {{- end }}
-    {{- if .Values.haRaft.serviceLabel }}
-    ncs.cisco.com/ha-role: leader
-    {{- end }}
