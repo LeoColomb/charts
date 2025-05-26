@@ -83,9 +83,9 @@ spec:
           {{- end }}
           env:
             - name: NCS_IPC_ADDR
-              value: "$(CISCO_NSO_SERVICE_HOST)"
+              value: {{ printf "$(%s_SERVICE_HOST)" (include "common.utils.fieldToEnvVar" (dict "field" (include "common.names.fullname" $))) }}
             - name: NCS_IPC_PORT
-              value: "$(CISCO_NSO_SERVICE_PORT_IPC)"
+              value: {{ printf "$(%s_SERVICE_PORT_IPC)" (include "common.utils.fieldToEnvVar" (dict "field" (include "common.names.fullname" $))) }}
             - name: ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
