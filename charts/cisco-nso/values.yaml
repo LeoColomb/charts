@@ -1384,7 +1384,7 @@ volumePermissions:
     runAsGroup: 0
     runAsNonRoot: true
     privileged: true
-    allowPrivilegeEscalation: false
+    allowPrivilegeEscalation: true
     readOnlyRootFilesystem: true
     capabilities:
       drop: [ALL]
