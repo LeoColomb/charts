@@ -117,7 +117,7 @@ cli:
     fsGroupChangePolicy: Always
     sysctls: []
     supplementalGroups: []
-    fsGroup: 1001
+    fsGroup: 998
   ## Configure container security context for backup cronjob containers
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param cli.containerSecurityContext.enabled Enabled containers' Security Context
@@ -134,8 +134,8 @@ cli:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
@@ -344,7 +344,7 @@ backups:
       fsGroupChangePolicy: Always
       sysctls: []
       supplementalGroups: []
-      fsGroup: 1001
+      fsGroup: 998
     ## Configure container security context for backup cronjob containers
     ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
     ## @param backups.cronjob.containerSecurityContext.enabled Enabled containers' Security Context
@@ -361,8 +361,8 @@ backups:
     containerSecurityContext:
       enabled: true
       seLinuxOptions: {}
-      runAsUser: 1001
-      runAsGroup: 1001
+      runAsUser: 998
+      runAsGroup: 998
       runAsNonRoot: true
       privileged: false
       allowPrivilegeEscalation: false
@@ -500,8 +500,8 @@ restoreFromBackup:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
@@ -690,8 +690,8 @@ haRaft:
       containerSecurityContext:
         enabled: true
         seLinuxOptions: {}
-        runAsUser: 1001
-        runAsGroup: 1001
+        runAsUser: 998
+        runAsGroup: 998
         runAsNonRoot: true
         privileged: false
         readOnlyRootFilesystem: true
@@ -1426,8 +1426,8 @@ statusLabeler:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
@@ -1496,8 +1496,8 @@ logRotate:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
