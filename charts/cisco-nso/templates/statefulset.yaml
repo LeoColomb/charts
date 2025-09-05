@@ -89,7 +89,6 @@ spec:
               cp -pr "${NCS_CONFIG_DIR}"/* "/etc/ncs-setup/"
               chown "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}" "/etc/ncs-setup"
               find "/etc/ncs-setup" -mindepth 1 -maxdepth 2 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}"
-              chmod u+w "/etc/ncs-setup/ncs.conf"
           {{- if .Values.volumePermissions.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.volumePermissions.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
@@ -325,6 +324,9 @@ spec:
             - name: conf-d
               mountPath: {{ printf "%s/ncs.conf.d" .Values.ncs.configPath }}
               readOnly: true
+            - name: custom-pre-ncs-start
+              mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath "10-ownership.sh" }}
+              subPath: 10-ownership.sh
             - name: custom-pre-ncs-start
               mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath "50-merge-config.py" }}
               subPath: 50-merge-config.py
