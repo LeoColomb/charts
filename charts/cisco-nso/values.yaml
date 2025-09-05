@@ -1380,10 +1380,10 @@ volumePermissions:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 998
-    runAsGroup: 998
+    runAsUser: 0
+    runAsGroup: 0
     runAsNonRoot: true
-    privileged: false
+    privileged: true
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     capabilities:
