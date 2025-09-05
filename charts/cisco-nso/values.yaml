@@ -1382,7 +1382,7 @@ volumePermissions:
     seLinuxOptions: {}
     runAsUser: 0
     runAsGroup: 0
-    runAsNonRoot: true
+    runAsNonRoot: false
     privileged: true
     allowPrivilegeEscalation: true
     readOnlyRootFilesystem: true
