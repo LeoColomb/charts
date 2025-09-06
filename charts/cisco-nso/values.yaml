@@ -978,7 +978,7 @@ containerSecurityContext:
   runAsUser: 998
   runAsGroup: 998
   runAsNonRoot: true
-  privileged: false
+  privileged: true
   allowPrivilegeEscalation: true
   # readOnlyRootFilesystem: true => /var/run/crond.pid, /etc/logrotate.d/ncs
   readOnlyRootFilesystem: false
