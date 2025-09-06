@@ -975,9 +975,9 @@ podSecurityContext:
 containerSecurityContext:
   enabled: true
   seLinuxOptions: {}
-  runAsUser: 998
-  runAsGroup: 998
-  runAsNonRoot: true
+  runAsUser: 0
+  runAsGroup: 0
+  runAsNonRoot: false
   privileged: true
   allowPrivilegeEscalation: true
   # readOnlyRootFilesystem: true => /var/run/crond.pid, /etc/logrotate.d/ncs
