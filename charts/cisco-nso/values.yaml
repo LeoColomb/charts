@@ -1013,7 +1013,7 @@ livenessProbe:
 ## @param readinessProbe.successThreshold Success threshold for readinessProbe
 ##
 readinessProbe:
-  enabled: false
+  enabled: true
   initialDelaySeconds: 5
   periodSeconds: 10
   timeoutSeconds: 1
