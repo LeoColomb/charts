@@ -1505,12 +1505,12 @@ logRotate:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 998
-    runAsGroup: 998
-    runAsNonRoot: true
-    privileged: false
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
+    runAsUser: 0
+    runAsGroup: 0
+    runAsNonRoot: false
+    privileged: true
+    allowPrivilegeEscalation: true
+    readOnlyRootFilesystem: false
     capabilities:
       drop: [ALL]
     seccompProfile:
