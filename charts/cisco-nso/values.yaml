@@ -114,7 +114,7 @@ cli:
   ##
   podSecurityContext:
     enabled: true
-    fsGroupChangePolicy: OnRootMismatch
+    fsGroupChangePolicy: Always
     sysctls: []
     supplementalGroups: []
     fsGroup: 998
@@ -341,7 +341,7 @@ backups:
     ##
     podSecurityContext:
       enabled: true
-      fsGroupChangePolicy: OnRootMismatch
+      fsGroupChangePolicy: Always
       sysctls: []
       supplementalGroups: []
       fsGroup: 998
@@ -962,7 +962,7 @@ resources: {}
 ##
 podSecurityContext:
   enabled: true
-  fsGroupChangePolicy: OnRootMismatch
+  fsGroupChangePolicy: Always
   sysctls: []
   supplementalGroups: []
   fsGroup: 998
@@ -982,6 +982,7 @@ containerSecurityContext:
   allowPrivilegeEscalation: true
   # readOnlyRootFilesystem: true => /var/run/crond.pid, /etc/logrotate.d/ncs
   readOnlyRootFilesystem: false
+  fsGroupChangePolicy: OnRootMismatch
   capabilities:
     drop: [ALL]
   seccompProfile:
