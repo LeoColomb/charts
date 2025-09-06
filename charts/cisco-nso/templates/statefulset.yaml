@@ -474,7 +474,7 @@ spec:
               mountPath: /etc/logrotate.conf
               subPath: logrotate.conf
             - name: log-cron
-              mountPath: /var/crontabs
+              mountPath: /etc/crontabs
         {{- end }}
         {{- if .Values.sidecars }}
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
