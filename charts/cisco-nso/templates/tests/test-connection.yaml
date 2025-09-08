@@ -6,10 +6,13 @@ metadata:
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
   annotations:
     helm.sh/hook: test
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
 spec:
   containers:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "common.names.fullname" . }}:{{ .Values.service.webuiPort }}']
+      args: ['http://{{ include "common.names.fullname" . }}:{{ .Values.service.webuiPort }}/']
   restartPolicy: Never

@@ -117,7 +117,7 @@ cli:
     fsGroupChangePolicy: Always
     sysctls: []
     supplementalGroups: []
-    fsGroup: 1001
+    fsGroup: 998
   ## Configure container security context for backup cronjob containers
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param cli.containerSecurityContext.enabled Enabled containers' Security Context
@@ -134,14 +134,14 @@ cli:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     capabilities:
-      drop: ["ALL"]
+      drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
   ## Configure resource requests and limits for backup containers
@@ -344,7 +344,7 @@ backups:
       fsGroupChangePolicy: Always
       sysctls: []
       supplementalGroups: []
-      fsGroup: 1001
+      fsGroup: 998
     ## Configure container security context for backup cronjob containers
     ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
     ## @param backups.cronjob.containerSecurityContext.enabled Enabled containers' Security Context
@@ -361,14 +361,14 @@ backups:
     containerSecurityContext:
       enabled: true
       seLinuxOptions: {}
-      runAsUser: 1001
-      runAsGroup: 1001
+      runAsUser: 998
+      runAsGroup: 998
       runAsNonRoot: true
       privileged: false
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
       capabilities:
-        drop: ["ALL"]
+        drop: [ALL]
       seccompProfile:
         type: RuntimeDefault
     ## Configure resource requests and limits for backup containers
@@ -500,14 +500,14 @@ restoreFromBackup:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true
     capabilities:
-      drop: ["ALL"]
+      drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
   ## @param restoreFromBackup.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if volumePermissions.resources is set (volumePermissions.resources is recommended for production).
@@ -694,12 +694,12 @@ haRaft:
         runAsGroup: 1001
         runAsNonRoot: true
         privileged: false
-        readOnlyRootFilesystem: true
         allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
         capabilities:
-          drop: ["ALL"]
+          drop: [ALL]
         seccompProfile:
-          type: "RuntimeDefault"
+          type: RuntimeDefault
       ## Init container resource requests and limits.
       ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
       ## We usually recommend not to specify default resources and to leave this as a conscious
@@ -965,7 +965,7 @@ podSecurityContext:
   fsGroupChangePolicy: Always
   sysctls: []
   supplementalGroups: []
-  fsGroup: 0
+  fsGroup: 998
 ## Configure Container Security Context (only main container)
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## @param containerSecurityContext.enabled Enabled container Security Context
@@ -975,13 +975,14 @@ podSecurityContext:
 containerSecurityContext:
   enabled: true
   seLinuxOptions: {}
-  runAsUser: 0
-  runAsGroup: 0
-  runAsNonRoot: false
-  privileged: false
-  allowPrivilegeEscalation: false
+  runAsUser: 998
+  runAsGroup: 998
+  runAsNonRoot: true
+  privileged: true
+  allowPrivilegeEscalation: true
   # readOnlyRootFilesystem: true => /var/run/crond.pid, /etc/logrotate.d/ncs
   readOnlyRootFilesystem: false
+  fsGroupChangePolicy: OnRootMismatch
   capabilities:
     drop: [ALL]
   seccompProfile:
@@ -1381,6 +1382,15 @@ volumePermissions:
     enabled: true
     seLinuxOptions: {}
     runAsUser: 0
+    runAsGroup: 0
+    runAsNonRoot: false
+    privileged: true
+    allowPrivilegeEscalation: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
 
 ## Sidecar containers parameters:
 ## statusLabeler: Enable automatic pod labeling for NSO and HA statuses.
@@ -1433,7 +1443,7 @@ statusLabeler:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     capabilities:
-      drop: ["ALL"]
+      drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
   ## @param statusLabeler.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if statusLabeler.resources is set (statusLabeler.resources is recommended for production).
@@ -1496,14 +1506,14 @@ logRotate:
   containerSecurityContext:
     enabled: true
     seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 998
+    runAsGroup: 998
     runAsNonRoot: true
     privileged: false
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     capabilities:
-      drop: ["ALL"]
+      drop: [ALL]
     seccompProfile:
       type: RuntimeDefault
   ## @param logRotate.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if logRotate.resources is set (logRotate.resources is recommended for production).

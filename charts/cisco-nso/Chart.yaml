@@ -1,9 +1,9 @@
 apiVersion: v2
-version: 7.2.31
+version: 7.3.0
 name: cisco-nso
 description: Cisco Network Services Orchestrator (NSO)
 # renovate: image=ghcr.io/cisco-nso-prod
-appVersion: "6.4"
+appVersion: "6.5"
 type: application
 keywords:
   - network

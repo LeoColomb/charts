@@ -87,8 +87,10 @@ spec:
             - -ec
             - |
               cp -pr "${NCS_CONFIG_DIR}"/* "/etc/ncs-setup/"
-          {{- if .Values.containerSecurityContext.enabled }}
-          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+              chown "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}" "/etc/ncs-setup"
+              find "/etc/ncs-setup" -mindepth 1 -maxdepth 2 -not -name ".snapshot" -not -name "lost+found" | xargs -r chown -R "{{ .Values.containerSecurityContext.runAsUser }}:{{ .Values.podSecurityContext.fsGroup }}"
+          {{- if .Values.volumePermissions.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.volumePermissions.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           {{- if .Values.volumePermissions.resources }}
           resources: {{- include "common.tplvalues.render" (dict "value" .Values.volumePermissions.resources "context" $) | nindent 12 }}
@@ -323,6 +325,9 @@ spec:
               mountPath: {{ printf "%s/ncs.conf.d" .Values.ncs.configPath }}
               readOnly: true
             - name: custom-pre-ncs-start
+              mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath "10-ownership.sh" }}
+              subPath: 10-ownership.sh
+            - name: custom-pre-ncs-start
               mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath "50-merge-config.py" }}
               subPath: 50-merge-config.py
             {{- range $name, $_ := .Values.customPreNcsStartScripts }}
@@ -468,6 +473,8 @@ spec:
             - name: log-rotate
               mountPath: /etc/logrotate.conf
               subPath: logrotate.conf
+            - name: log-cron
+              mountPath: /etc/crontabs
         {{- end }}
         {{- if .Values.sidecars }}
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
@@ -516,6 +523,8 @@ spec:
           configMap:
             name: {{ printf "%s-log-rotate" (include "common.names.fullname" .) | trunc 63 | trimSuffix "-" }}
             defaultMode: 0644
+        - name: log-cron
+          emptyDir: {}
         {{- end }}
         {{- if .Values.auth.ipc.enabled }}
         - name: ipc-token
