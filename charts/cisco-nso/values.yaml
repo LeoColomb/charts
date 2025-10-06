@@ -644,8 +644,8 @@ haRaft:
       ##
       image:
         registry: docker.io
-        repository: bitnami/kubectl
-        tag: 1.33.4-debian-12-r0
+        repository: rancher/kubectl
+        tag: v1.33.4
         digest: ""
         ## Specify a imagePullPolicy
         ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -661,19 +661,14 @@ haRaft:
       ## @param haRaft.job.waitForBackend.command The command to execute in the wait-for-backend container
       ##
       command:
-        - /bin/bash
-        - -ec
+      - /bin/kubectl
       ## @param haRaft.job.waitForBackend.args Override wait-for-backend container args
       ##
       args:
-        - |
-          statefulset=${STATEFULSET_NAME:?statefulset name is missing}
-          return_code=0
-
-          echo "Waiting for statefulset \"${statefulset}\" to be successfully rolled out..."
-          kubectl rollout status statefulset "$statefulset" 2>&1 || return_code=$?
-          echo "Rollout exit code: '${return_code}'"
-          exit $return_code
+        - rollout
+        - status
+        - statefulset
+        - "$(STATEFULSET_NAME)"
       ## waitForBackend containers' Security Context (init container).
       ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
       ## @param haRaft.job.waitForBackend.containerSecurityContext.enabled Enabled containers' Security Context
@@ -1408,8 +1403,8 @@ statusLabeler:
   ##
   image:
     registry: docker.io
-    repository: bitnami/kubectl
-    tag: 1.33.4-debian-12-r0
+    repository: rancher/kubectl
+    tag: v1.33.4
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
