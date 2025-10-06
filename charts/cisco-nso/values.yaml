@@ -661,7 +661,7 @@ haRaft:
       ## @param haRaft.job.waitForBackend.command The command to execute in the wait-for-backend container
       ##
       command:
-      - /bin/kubectl
+        - /bin/kubectl
       ## @param haRaft.job.waitForBackend.args Override wait-for-backend container args
       ##
       args:
