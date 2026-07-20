@@ -332,7 +332,7 @@ spec:
               subPath: 50-merge-config.py
             {{- range $name, $_ := .Values.customPreNcsStartScripts }}
             - name: custom-pre-ncs-start
-              mountPath: {{ printf "%s/pre-ncs-start.d/%s" .Values.ncs.configPath $name }}
+              mountPath: {{ printf "%s/pre-ncs-start.d/%s" $.Values.ncs.configPath $name }}
               subPath: {{ $name | quote }}
             {{- end }}
             {{- if .Values.logRotate.enabled }}
@@ -342,7 +342,7 @@ spec:
             {{- end }}
             {{- range $name, $_ := .Values.customPostNcsStartScripts }}
             - name: custom-post-ncs-start
-              mountPath: {{ printf "%s/post-ncs-start.d/%s" .Values.ncs.configPath $name }}
+              mountPath: {{ printf "%s/post-ncs-start.d/%s" $.Values.ncs.configPath $name }}
               subPath: {{ $name | quote }}
             {{- end }}
             {{- if .Values.auth.ipc.enabled }}

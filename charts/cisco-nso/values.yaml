@@ -977,7 +977,6 @@ containerSecurityContext:
   allowPrivilegeEscalation: true
   # readOnlyRootFilesystem: true => /var/run/crond.pid, /etc/logrotate.d/ncs
   readOnlyRootFilesystem: false
-  fsGroupChangePolicy: OnRootMismatch
   capabilities:
     drop: [ALL]
   seccompProfile:
