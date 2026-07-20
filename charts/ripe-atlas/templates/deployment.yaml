@@ -44,7 +44,7 @@ spec:
         {{- if .Values.securityContext.enabled }}
         securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.securityContext "context" $) | nindent 10 }}
         {{- end }}
-        image: {{ include "ripe-atlas.image" . | quote }}
+        image: {{ include "atlas.image" . | quote }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.command }}
         command: {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 10 }}
@@ -106,13 +106,10 @@ spec:
         volumeMounts:
         - name: etc
           mountPath: /etc/ripe-atlas
-          readOnly: true
         - name: run
           mountPath: /run/ripe-atlas
-          readOnly: true
         - name: spool
           mountPath: /var/spool/ripe-atlas
-          readOnly: true
         {{- if .Values.extraVolumeMounts }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 8 }}
         {{- end }}
@@ -125,16 +122,20 @@ spec:
       {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 6 }}
       {{- end }}
       volumes:
-      - name: etc
-        emptyDir:
-          medium: Memory
       - name: run
         emptyDir:
           medium: Memory
       - name: spool
         {{- if .Values.persistence.enabled }}
         persistentVolumeClaim:
-          claimName: {{ .Values.persistence.existingClaim | default (printf "%s-media" (include "common.names.fullname" .)) }}
+          claimName: {{ .Values.persistence.existingClaim | default (printf "%s-spool" (include "common.names.fullname" .)) }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: config
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.persistence.existingClaim | default (printf "%s-config" (include "common.names.fullname" .)) }}
         {{- else }}
         emptyDir: {}
         {{- end }}

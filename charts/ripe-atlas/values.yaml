@@ -90,54 +90,6 @@ replicaCount: 1
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
 ##
 podManagementPolicy: Parallel
-## Enable persistence using Persistent Volume Claims
-## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
-## @param persistence.enabled Enable persistence using PVC
-## @param persistence.storageClass PVC Storage Class for volume
-## @param persistence.accessModes [array] PVC Access Mode for volume
-## @param persistence.size PVC Storage Request for volume
-## @param persistence.existingClaim Name of an existing PVC to be used
-## @param persistence.annotations Annotations to add to the PVC
-##
-persistence:
-  enabled: true
-  ## Data Persistent Volume Storage Class
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  ##
-  storageClass: ""
-  accessModes:
-    - ReadWriteOnce
-  size: 10Gi
-  existingClaim: ""
-  annotations: {}
-  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
-  ## If set, the PVC can't have a PV dynamically provisioned for it
-  ## E.g.
-  ## selector:
-  ##   matchLabels:
-  ##     app: my-app
-  ##
-  selector: {}
-  ## @param persistence.dataSource Custom PVC data source
-  ##
-  dataSource: {}
-## Persistent Volume Claim Retention Policy
-## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#persistentvolumeclaim-retention
-##
-persistentVolumeClaimRetentionPolicy:
-  ## @param persistentVolumeClaimRetentionPolicy.enabled Enable Persistent volume retention policy for StatefulSet
-  ##
-  enabled: false
-  ## @param persistentVolumeClaimRetentionPolicy.whenScaled Volume retention behavior when the replica count of the StatefulSet is reduced
-  ##
-  whenScaled: Retain
-  ## @param persistentVolumeClaimRetentionPolicy.whenDeleted Volume retention behavior that applies when the StatefulSet is deleted
-  ##
-  whenDeleted: Retain
 ## @param updateStrategy.type Deployment strategy type
 ## @param updateStrategy.rollingUpdate Deployment rolling update configuration parameters
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
@@ -155,18 +107,6 @@ updateStrategy:
 ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
 ##
 schedulerName: ""
-## Pods Service Account
-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
-## @param master.serviceAccount.create Specifies whether a ServiceAccount should be created
-## @param master.serviceAccount.name Name of the service account to use. If not set and create is true, a name is generated using the fullname template.
-## @param master.serviceAccount.automountServiceAccountToken Automount service account token for the server service account
-## @param master.serviceAccount.annotations Annotations for service account. Evaluated as a template. Only used if `create` is `true`.
-##
-serviceAccount:
-  create: true
-  name: ""
-  automountServiceAccountToken: true
-  annotations: {}
 ## @param hostAliases [array] Pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
@@ -185,8 +125,7 @@ extraVolumeMounts: []
 extraVolumeClaimTemplates: []
 ## Container ports to open
 ##
-containerPorts:
-  ipc: 4569
+containerPorts: {}
 ## @param extraContainerPorts Optionally specify extra list of additional ports for  container(s)
 ## e.g:
 ## extraContainerPorts:
