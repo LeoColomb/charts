@@ -366,7 +366,7 @@ spec:
           image: {{ include "nso.cli.image" . | quote }}
           imagePullPolicy: {{ .Values.cli.image.pullPolicy | quote }}
           command:
-            - /bin/bash
+            - /bin/sh
             - -ec
           args:
             - |
