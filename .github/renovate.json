@@ -26,5 +26,19 @@
   ],
   "kubernetes": {
     "managerFilePatterns": ["/^charts/.+\\.ya?ml$/"]
-  }
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "{{ secrets.CISCO_NSO_IMAGE }}",
+      "registryUrlTemplate": "ghcr.io",
+      "managerFilePatterns": [
+        "**/Chart.yaml"
+      ],
+      "matchStrings": [
+        "#\\s*renovate: cisco-nso\\s+appVersion:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
+      ]
+    }
+  ]
 }
