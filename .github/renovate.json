@@ -32,7 +32,6 @@
       "customType": "regex",
       "datasourceTemplate": "docker",
       "depNameTemplate": "{{ secrets.CISCO_NSO_IMAGE }}",
-      "registryUrlTemplate": "ghcr.io",
       "managerFilePatterns": [
         "**/Chart.yaml"
       ],
