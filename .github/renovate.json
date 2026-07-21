@@ -8,7 +8,7 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["cisco-nso-prod"],
-      "replacementName": "{{ secrets.CISCO_NSO_IMAGE }}"
+      "overridePackageName": "{{ secrets.CISCO_NSO_IMAGE }}"
     },
     {
       "matchManagers": ["helmv3"],
