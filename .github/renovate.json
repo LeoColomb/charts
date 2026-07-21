@@ -6,6 +6,11 @@
   ],
   "packageRules": [
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["cisco-nso-prod"],
+      "replacementName": "{{ secrets.CISCO_NSO_IMAGE }}"
+    },
+    {
       "matchManagers": ["helmv3"],
       "versioning": "helm"
     },
@@ -26,18 +31,5 @@
   ],
   "kubernetes": {
     "managerFilePatterns": ["/^charts/.+\\.ya?ml$/"]
-  },
-  "customManagers": [
-    {
-      "customType": "regex",
-      "datasourceTemplate": "docker",
-      "depNameTemplate": "{{ secrets.CISCO_NSO_IMAGE }}",
-      "managerFilePatterns": [
-        "**/Chart.yaml"
-      ],
-      "matchStrings": [
-        "#\\s*renovate: cisco-nso\\s+appVersion:\\s*[\"']?(?<currentValue>[\\w+\\.\\-]*)"
-      ]
-    }
-  ]
+  }
 }
