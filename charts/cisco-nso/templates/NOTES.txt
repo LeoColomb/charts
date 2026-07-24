@@ -30,8 +30,8 @@ APP VERSION: {{ .Chart.AppVersion }}
 
   export POD_NAME=$(kubectl get pods --namespace {{ include "common.names.namespace" . }} -l "app.kubernetes.io/name={{ include "common.names.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(kubectl get pod --namespace {{ include "common.names.namespace" . }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
-  echo "Visit http://127.0.0.1:8080 to use your application"
-  kubectl --namespace {{ include "common.names.namespace" . }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+  echo "Visit http://127.0.0.1:8888 to use your application"
+  kubectl --namespace {{ include "common.names.namespace" . }} port-forward $POD_NAME 8888:$CONTAINER_PORT
 
 {{- end }}
 
