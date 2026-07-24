@@ -846,7 +846,7 @@ extraVolumeClaimTemplates: []
 ##
 containerPorts:
   ipc: 4569
-  webui: 8080
+  webui: 8888
   restconf: 8009
   netconf: 2023
   netconfCallHome: 4334

@@ -14,6 +14,6 @@ if __name__ == "__main__":
 
     print("--> HTTP WebUI Server")
     root.find("./webui/transport/tcp/enabled", ns).text = "true"
-    root.find("./webui/transport/tcp/port", ns).text = "8008"
+    root.find("./webui/transport/tcp/port", ns).text = "8888"
 
     tree.write(file, default_namespace="http://tail-f.com/yang/tailf-ncs-config")
