@@ -6,6 +6,11 @@
   ],
   "packageRules": [
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["cisco-nso-prod"],
+      "overridePackageName": "{{ secrets.CISCO_NSO_IMAGE }}"
+    },
+    {
       "matchManagers": ["helmv3"],
       "versioning": "helm"
     },
