@@ -12,6 +12,59 @@ entries:
         - name: volume-permissions
           image: docker.io/busybox:1.37.0
         - name: status-labeler
+          image: registry.opensuse.org/opensuse/kubectl:1.36
+        - name: log-rotate
+          image: docker.io/imroc/logrotate:3.21.0
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Upstream Documentation
+          url: https://nso-docs.cisco.com/
+        - name: Deploying Cisco NSO on Kubernetes
+          url: https://nso-docs.cisco.com/resources/best-practices/nso-on-kubernetes
+      artifacthub.io/signKey: |
+        fingerprint: 7D422B98DC0F24610C5807CBB9FDEEE84C92D2AA
+        url: https://leocolomb.github.io/charts/gpg.pub
+    apiVersion: v2
+    appVersion: 6.5.3
+    created: "2026-07-24T21:48:11.442827633Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      tags:
+      - bitnami-common
+      version: ^2.41.0
+    description: Cisco Network Services Orchestrator (NSO)
+    digest: c91da0e6f2f98e9213da57cc5eea766b080742bbd8a332cb6f9117adbd1b8f8c
+    home: https://www.cisco.com/go/nso
+    icon: https://gitlab.com/uploads/-/system/group/avatar/6082355/NSO_fc_256.png
+    keywords:
+    - network
+    - cisco
+    - nso
+    - orchestrator
+    kubeVersion: ^1.23.0-0
+    maintainers:
+    - name: LeoColomb
+      url: https://github.com/LeoColomb
+    name: cisco-nso
+    sources:
+    - https://github.com/LeoColomb/charts/tree/main/charts/cisco-nso
+    - https://nso-docs.cisco.com/
+    type: application
+    urls:
+    - https://github.com/LeoColomb/charts/releases/download/cisco-nso-7.4.1/cisco-nso-7.4.1.tgz
+    version: 7.4.1
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: changed
+          description: New release
+          links:
+            - name: Changelog on GitHub Releases
+              url: https://github.com/LeoColomb/charts/releases?q=cisco-nso-
+      artifacthub.io/images: |
+        - name: volume-permissions
+          image: docker.io/busybox:1.37.0
+        - name: status-labeler
           image: registry.opensuse.org/opensuse/kubectl:v1.33.4
         - name: log-rotate
           image: docker.io/imroc/logrotate:3.21.0
@@ -5684,4 +5737,4 @@ entries:
     urls:
     - https://github.com/LeoColomb/charts/releases/download/cisco-nso-1.0.0/cisco-nso-1.0.0.tgz
     version: 1.0.0
-generated: "2026-07-24T21:44:34.382651148Z"
+generated: "2026-07-24T21:48:11.443262838Z"
