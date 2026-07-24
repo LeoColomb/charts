@@ -643,8 +643,8 @@ haRaft:
       ## @param haRaft.job.waitForBackend.image.pullSecrets Specify docker-registry secret names as an array
       ##
       image:
-        registry: docker.io
-        repository: rancher/kubectl
+        registry: dp.apps.rancher.io
+        repository: containers/kubectl
         tag: v1.33.4
         digest: ""
         ## Specify a imagePullPolicy
@@ -1401,8 +1401,8 @@ statusLabeler:
   ## @param statusLabeler.image.pullSecrets Specify docker-registry secret names as an array
   ##
   image:
-    registry: docker.io
-    repository: rancher/kubectl
+    registry: dp.apps.rancher.io
+    repository: containers/kubectl
     tag: v1.33.4
     digest: ""
     pullPolicy: IfNotPresent
