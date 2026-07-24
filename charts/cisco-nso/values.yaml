@@ -645,7 +645,7 @@ haRaft:
       image:
         registry: registry.opensuse.org
         repository: opensuse/kubectl
-        tag: 1.33
+        tag: 1.36
         digest: ""
         ## Specify a imagePullPolicy
         ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1403,7 +1403,7 @@ statusLabeler:
   image:
     registry: registry.opensuse.org
     repository: opensuse/kubectl
-    tag: 1.33
+    tag: 1.36
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
