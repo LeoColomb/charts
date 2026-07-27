@@ -279,7 +279,7 @@ spec:
           {{- else if .Values.readinessProbe.enabled }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
             httpGet:
-              path: /
+              path: /login.html
               port: webui
           {{- end }}
           {{- if .Values.customStartupProbe }}
