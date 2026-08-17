@@ -529,7 +529,7 @@ spec:
         {{- if .Values.auth.ipc.enabled }}
         - name: ipc-token
           secret:
-            secretName: {{ include "common.secrets.name" (dict "existingSecret" .Values.haRaft.existingSecret "defaultNameSuffix" "ipc-token" "context" $) }}
+            secretName: {{ include "common.secrets.name" (dict "existingSecret" .Values.auth.ipc.existingSecret "defaultNameSuffix" "ipc-token" "context" $) }}
             defaultMode: 0244
         {{- end }}
         {{- if .Values.tls.enabled }}
