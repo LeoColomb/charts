@@ -8,4 +8,9 @@
     <enabled>{{ .Values.auth.ipc.enabled }}</enabled>
     <filename>${NCS_CONFIG_DIR}/ipc_access</filename>
   </ncs-ipc-access-check>
+{{- if .Values.auth.ipc.enabled }}
+  <ncs-local-ipc>
+    <enabled>false</enabled>
+  </ncs-local-ipc>
+{{- end }}
 </ncs-config>
