@@ -372,18 +372,18 @@ spec:
             - |
               while true; do
                 (
-                  /opt/ncs/current/bin/ncs_cmd -o -U \
+                  timeout 15s /opt/ncs/current/bin/ncs_cmd -o -U \
                     -c 'get_phase' \
                     | cut -d' ' -f2 \
                   || echo "unknown" \
                 ) > /opt/status/phase
                 (
-                  /opt/ncs/current/bin/ncs_cmd -o -U \
+                  timeout 15s /opt/ncs/current/bin/ncs_cmd -o -U \
                     -c 'get_running_status' \
                   || echo "unknown" \
                 ) > /opt/status/status
                 (
-                  /opt/ncs/current/bin/ncs_cmd -o -U \
+                  timeout 15s /opt/ncs/current/bin/ncs_cmd -o -U \
                     -c 'mrtrans; mget "/ha-raft/status/role"' \
                   || echo "unknown" \
                 ) > /opt/status/ha-role
