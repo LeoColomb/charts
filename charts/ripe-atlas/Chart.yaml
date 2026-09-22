@@ -1,0 +1,41 @@
+apiVersion: v2
+version: 1.0.0
+name: ripe-atlas
+description: RIPE Atlas
+# renovate: image=ghcr.io/jamesits/ripe-atlas
+appVersion: "5120"
+type: application
+keywords:
+  - network
+  - ripe
+  - atlas
+home: https://www.ripe.net/ripe-atlas
+icon: https://www.ripe.net/media/images/RIPE_Logo_2023.original.png
+sources:
+  - https://github.com/LeoColomb/charts/tree/main/charts/ripe-atlas
+  - https://atlas.ripe.net/
+maintainers:
+  - name: LeoColomb
+    url: https://github.com/LeoColomb
+kubeVersion: ^1.23.0-0
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: ^2.41.0
+    tags:
+      - bitnami-common
+annotations:
+  artifacthub.io/images: ""
+  artifacthub.io/license: GPL-3.0
+  artifacthub.io/links: |
+    - name: Upstream Documentation
+      url: https://atlas.ripe.net/
+  artifacthub.io/signKey: |
+    fingerprint: 7D422B98DC0F24610C5807CBB9FDEEE84C92D2AA
+    url: https://leocolomb.github.io/charts/gpg.pub
+  artifacthub.io/changes: |
+    - kind: changed
+      description: New release
+      links:
+        - name: Changelog on GitHub Releases
+          url: https://github.com/LeoColomb/charts/releases?q=cisco-nso-
