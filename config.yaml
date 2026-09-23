@@ -2,6 +2,7 @@ owner: LeoColomb
 repo: charts
 remote: origin
 target-branch: main
+oci-registry-url: oci://ghcr.io/LeoColomb/charts
 sign: true
 key: LeoColomb
 chart-dirs:
