@@ -16,6 +16,9 @@ jobs:
   ct:
     name: Run chart-testing
     runs-on: ubuntu-latest
+    environment:
+      name: entity-2
+      deployment: false
     strategy:
       fail-fast: false
       matrix:
