@@ -16,6 +16,9 @@ jobs:
   ct:
     name: Run chart-testing
     runs-on: ubuntu-latest
+    environment:
+      name: entity-2
+      deployment: false
     strategy:
       fail-fast: false
       matrix:
@@ -44,4 +47,4 @@ jobs:
       - name: Run chart-testing (${{ matrix.action }})
         run: ct ${{ matrix.action }} --config config.yaml --debug ${{ contains(matrix.action, 'install') && '--helm-extra-set-args="$CT_HELM_EXTRA_SET_ARGS"' || '' }}
         env:
-          CT_HELM_EXTRA_SET_ARGS: --set=image.repository=${{ secrets.NSO_IMAGE }} --set=ciPullSecrets.password=${{ secrets.GHCR_TOKEN }} --set=ciPullSecrets.username=${{ vars.GHCR_USERNAME }}
+          CT_HELM_EXTRA_SET_ARGS: --set=image.repository=${{ secrets.NSO_IMAGE }} --set=ciPullSecrets.password=${{ secrets.GHCR_TOKEN }} --set=ciPullSecrets.username=${{ secrets.GHCR_USERNAME }}
