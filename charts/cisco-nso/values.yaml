@@ -563,7 +563,7 @@ haRaft:
     annotations: {}
     ## @param haRaft.service.port HA Raft server port
     ##
-    port: 4369
+    port: 4570
   job:
     enabled: true
     ## @param haRaft.job.restartPolicy Set the cronjob parameter restartPolicy
@@ -850,7 +850,7 @@ containerPorts:
   restconf: 8009
   netconf: 2023
   netconfCallHome: 4334
-  haRaft: 4369
+  haRaft: 4570
 ## @param extraContainerPorts Optionally specify extra list of additional ports for  container(s)
 ## e.g:
 ## extraContainerPorts:

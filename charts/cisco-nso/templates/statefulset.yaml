@@ -256,10 +256,6 @@ spec:
             - name: ha-raft
               containerPort: {{ .Values.containerPorts.haRaft }}
               protocol: TCP
-            {{- range until 29 }}
-            - name: {{ printf "ha-raft-%d" . }}
-              containerPort: {{ add 4370 . }}
-            {{- end }}
             {{- end }}
             {{- if .Values.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
