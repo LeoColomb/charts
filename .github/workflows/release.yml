@@ -56,6 +56,6 @@ jobs:
         uses: helm/chart-releaser-action@v1.8.0
         with:
           config: config.yaml
-          oci_registry_url: oci://ghcr.io/${GITHUB_REPOSITORY@L}
+          oci_registry_url: oci://ghcr.io/leocolomb/charts
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
